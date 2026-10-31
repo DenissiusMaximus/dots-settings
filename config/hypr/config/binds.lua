@@ -144,9 +144,8 @@ hl.bind(mainMod .. " + A", hl.dsp.exec_cmd(shellCall .. "drawers toggle sidebar"
 
 -- Focus on workspace number
 -- Absolute
-for i = 1, NUM_WPM do
-    local key = i % 10
-    hl.bind(mainMod .. " + " .. digitCode(key), hl.dsp.focus({ workspace = i }))
+for i = 1, 9 do
+    hl.bind(mainMod .. " + " .. digitCode(i), hl.dsp.focus({ workspace = i }))
 end
 -- Relative
 for i = 1, NUM_WPM do
