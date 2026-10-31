@@ -6,7 +6,7 @@ cd "$(dirname "$0")"
 CONFIGS=(hypr caelestia fish kitty alacritty fuzzel gtk-3.0 gtk-4.0 qt5ct qt6ct qtengine
          btop cava micro uwsm xsettingsd noctalia Thunar shelly swash zed spicetify
          systemd/user kdeglobals mimeapps.list user-dirs.dirs user-dirs.locale)
-HOME_FILES=(.zshrc .bashrc .bash_profile .gitconfig .icons)
+HOME_FILES=(.zshrc .bashrc .bash_profile .gitconfig .icons .local/bin/app-keyboard-layout.sh)
 ETC_FILES=(greetd)
 
 rm -rf config home etc
@@ -20,7 +20,9 @@ done
 find config -name '*.bak' -delete
 
 for f in "${HOME_FILES[@]}"; do
-    [ -e "$HOME/$f" ] && cp -a "$HOME/$f" "home/$f"
+    [ -e "$HOME/$f" ] || continue
+    mkdir -p "home/$(dirname "$f")"
+    cp -a "$HOME/$f" "home/$f"
 done
 
 for f in "${ETC_FILES[@]}"; do

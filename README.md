@@ -17,34 +17,39 @@
 
 ## Встановлення на новій системі
 
+Коротко — встановити CachyOS (варіант з Hyprland) і виконати:
+
+```sh
+# 1. Конфіги, пакети, сервіси
+sudo pacman -S --needed git
+git clone https://github.com/DenissiusMaximus/dots-settings.git ~/dotfiles
+cd ~/dotfiles
+./install.sh
+
+# 2. Екран входу (caelestia-greeter)
+git clone https://github.com/maylton/caelestia-greeter.git ~/caelestia-greeter
+cd ~/caelestia-greeter
+./install.sh
+
+# 3. Залежності скрипта розкладки клавіатури
+sudo pacman -S --needed jq socat
+
+# 4. Перезавантаження
+reboot
+```
+
+Детальніше:
+
 1. Встановити CachyOS (варіант з Hyprland).
-2. Склонувати репозиторій і запустити інсталятор:
-
-   ```sh
-   git clone https://github.com/DenissiusMaximus/dots-settings.git ~/dotfiles
-   cd ~/dotfiles
-   ./install.sh
-   ```
-
-   Скрипт:
+2. Склонувати репозиторій і запустити `./install.sh` (крок 1 вище). Скрипт:
    - оновлює систему і ставить пакети з `packages/repo.txt` (ті, яких уже нема в репозиторіях, пропускає);
    - ставить AUR-пакети з `packages/aur.txt` через `paru`;
    - копіює `config/` у `~/.config`, `home/` у `~`, `etc/` у `/etc` (старі конфіги — у `~/.config-backup/<дата>`);
    - вмикає системні та користувацькі сервіси;
    - змінює shell на той, що в `packages/shell.txt` (fish).
-3. Зробити ручні кроки нижче і перезавантажитись.
-
-### Ручні кроки після встановлення
-
-- **Екран входу.** `install.sh` копіює лише `/etc/greetd`, а самі скрипти greeter-а (`/usr/local/bin/caelestia-greeter-*`) — ні. Встановити його:
-
-  ```sh
-  git clone https://github.com/maylton/caelestia-greeter.git ~/caelestia-greeter
-  cd ~/caelestia-greeter && ./install.sh
-  ```
-
-- **Розкладка клавіатури для кожної програми.** Сервіс `app-keyboard-layout.service` запускає `~/.local/bin/app-keyboard-layout.sh`, якого немає в репозиторії. Без цього скрипта сервіс не стартує — скопіювати його вручну зі старої системи.
-- **Монітори.** Імена моніторів задаються в `config/hypr/config/variables.lua` (`MONITOR1`, `MONITOR2`, ...), розташування — у `monitors.lua`. Дізнатися імена: `hyprctl monitors`.
+3. Встановити екран входу (крок 2 вище). `install.sh` копіює лише `/etc/greetd`, а самі скрипти greeter-а (`/usr/local/bin/caelestia-greeter-*`) ставить його власний інсталятор.
+4. Розкладка клавіатури запам'ятовується окремо для кожної програми: сервіс `app-keyboard-layout.service` запускає `~/.local/bin/app-keyboard-layout.sh` (лежить у `home/.local/bin/`). Йому потрібні `jq` і `socat` (крок 3 вище).
+5. **Монітори.** Імена моніторів задаються в `config/hypr/config/variables.lua` (`MONITOR1`, `MONITOR2`, ...), розташування — у `monitors.lua`. Дізнатися імена: `hyprctl monitors`.
 
 ## Оновлення репозиторію
 
