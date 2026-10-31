@@ -1,0 +1,11 @@
+[Unit]
+Description=Remember keyboard layout per application
+After=graphical-session.target
+
+[Service]
+ExecStart=%h/.local/bin/app-keyboard-layout.sh
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=default.target

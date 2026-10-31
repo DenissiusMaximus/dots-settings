@@ -1,0 +1,4 @@
+caelestia-shell
+quickshell-git
+visual-studio-code-bin
+whatscli

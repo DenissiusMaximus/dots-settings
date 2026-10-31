@@ -1,0 +1,84 @@
+{
+    "appearance": {
+        "transparency": {
+            "enabled": true
+        }
+    },
+    "background": {
+        "wallpaperEnabled": true
+    },
+    "bar": {
+        "activeWindow": {
+            "compact": false,
+            "inverted": false,
+            "showOnHover": true
+        },
+        "clock": {
+            "background": false,
+            "showDate": true,
+            "showIcon": false,
+            "showSeconds": false
+        },
+        "persistent": true,
+        "popouts": {
+            "statusIcons": true,
+            "tray": true
+        },
+        "statusIcons": [
+            {
+                "enabled": true,
+                "id": "lockStatus"
+            },
+            {
+                "enabled": false,
+                "id": "audio"
+            },
+            {
+                "enabled": false,
+                "id": "microphone"
+            },
+            {
+                "enabled": true,
+                "id": "kbLayout"
+            },
+            {
+                "enabled": true,
+                "id": "network"
+            },
+            {
+                "enabled": true,
+                "id": "bluetooth"
+            },
+            {
+                "enabled": true,
+                "id": "battery"
+            }
+        ],
+        "tray": {
+            "background": false,
+            "compact": false,
+            "recolour": false
+        },
+        "workspaces": {
+            "activeIndicator": true,
+            "activeTrail": true,
+            "maxWindowIcons": 5,
+            "occupiedBg": false,
+            "perMonitor": true,
+            "showWindows": true,
+            "showWindowsOnSpecialWorkspaces": true
+        }
+    },
+    "dashboard": {
+        "enabled": true
+    },
+    "launcher": {
+        "showOnHover": false
+    },
+    "services": {
+        "smartScheme": true
+    },
+    "border": {
+        "thickness": 0
+    }
+}
