@@ -2,7 +2,10 @@ hl.config({
     input = {
         kb_layout = "us,ua",
         kb_options = "grp:alt_shift_toggle",
-	sensitivity = -0.5,	
+        sensitivity = -0.5,
+        touchpad = {
+            natural_scroll = true,
+        },
     },
 })
 
