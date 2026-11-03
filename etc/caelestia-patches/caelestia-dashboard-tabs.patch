@@ -1,0 +1,96 @@
+diff --color -ruN a/modules/dashboard/Content.qml b/modules/dashboard/Content.qml
+--- a/modules/dashboard/Content.qml	2026-11-03 23:15:54.443238352 +0200
++++ b/modules/dashboard/Content.qml	2026-11-03 23:16:10.350009375 +0200
+@@ -52,6 +52,22 @@
+     implicitWidth: nonAnimWidth
+     implicitHeight: nonAnimHeight
+ 
++    // Switch tabs with arrow keys
++    focus: true
++    Keys.onLeftPressed: root.screenState.dashboardTab = Math.max(root.screenState.dashboardTab - 1, 0)
++    Keys.onRightPressed: root.screenState.dashboardTab = Math.min(root.screenState.dashboardTab + 1, tabs.count - 1)
++    Keys.onEscapePressed: root.screenState.dashboard = false
++    Component.onCompleted: forceActiveFocus()
++
++    Connections {
++        function onDashboardChanged(): void {
++            if (root.screenState.dashboard)
++                root.forceActiveFocus();
++        }
++
++        target: root.screenState
++    }
++
+     Tabs {
+         id: tabs
+ 
+diff --color -ruN a/modules/dashboard/Tabs.qml b/modules/dashboard/Tabs.qml
+--- a/modules/dashboard/Tabs.qml	2026-11-03 23:15:54.443514015 +0200
++++ b/modules/dashboard/Tabs.qml	2026-11-03 23:16:10.349848601 +0200
+@@ -28,8 +28,20 @@
+         anchors.top: parent.top
+         anchors.topMargin: Tokens.sizes.dashboard.tabIndicatorSpacing
+ 
++        // Remember last tab: TabBar resets currentIndex to 0 while its tabs are
++        // being created, so only write back once the saved tab is restored
++        property bool restored: false
++
+         currentIndex: root.screenState.dashboardTab
+-        onCurrentIndexChanged: root.screenState.dashboardTab = currentIndex
++        onCurrentIndexChanged: {
++            if (restored)
++                root.screenState.dashboardTab = currentIndex;
++        }
++        Component.onCompleted: Qt.callLater(() => {
++            root.screenState.dashboardTab = Math.max(0, Math.min(root.screenState.dashboardTab, count - 1));
++            currentIndex = Qt.binding(() => root.screenState.dashboardTab);
++            restored = true;
++        })
+ 
+         implicitHeight: contentHeight
+         background: null
+diff --color -ruN a/modules/drawers/ContentWindow.qml b/modules/drawers/ContentWindow.qml
+--- a/modules/drawers/ContentWindow.qml	2026-11-03 23:15:54.451848080 +0200
++++ b/modules/drawers/ContentWindow.qml	2026-11-03 23:16:10.350577811 +0200
+@@ -68,7 +68,7 @@
+     name: "drawers"
+     WlrLayershell.exclusionMode: ExclusionMode.Ignore
+     WlrLayershell.layer: (fsTransitionProg > 0 && contentItem.Config.general.showOverFullscreen) || (hasSpecialWorkspace && hasFullscreenOnNormalWs) ? WlrLayer.Overlay : WlrLayer.Top
+-    WlrLayershell.keyboardFocus: screenState.launcher || screenState.session ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
++    WlrLayershell.keyboardFocus: screenState.launcher || screenState.session || (screenState.dashboard && interactions.dashboardKeyboard) ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
+ 
+     mask: hasFullscreen ? emptyRegion : regions
+ 
+@@ -119,6 +119,8 @@
+                 return true;
+             if (!conf.dashboard.showOnHover && s.dashboard && conf.dashboard.enabled)
+                 return true;
++            if (s.dashboard && conf.dashboard.enabled && interactions.dashboardKeyboard)
++                return true;
+             if (panels.popouts.currentName.startsWith("traymenu") && (panels.popouts.current as StackView)?.depth > 1)
+                 return true;
+             return false;
+diff --color -ruN a/modules/drawers/Interactions.qml b/modules/drawers/Interactions.qml
+--- a/modules/drawers/Interactions.qml	2026-11-03 23:15:54.452106142 +0200
++++ b/modules/drawers/Interactions.qml	2026-11-03 23:16:10.350331901 +0200
+@@ -20,6 +20,7 @@
+ 
+     property point dragStart
+     property bool dashboardShortcutActive
++    property bool dashboardKeyboard // opened via shortcut -> take keyboard focus
+     property bool osdShortcutActive
+     property bool utilitiesShortcutActive
+ 
+@@ -275,10 +276,12 @@
+                 const inDashboardArea = root.inTopPanel(root.panels.dashboard, root.mouseX, root.mouseY);
+                 if (!inDashboardArea) {
+                     root.dashboardShortcutActive = true;
++                    root.dashboardKeyboard = true;
+                 }
+             } else {
+                 // Dashboard hidden, clear shortcut flag
+                 root.dashboardShortcutActive = false;
++                root.dashboardKeyboard = false;
+             }
+         }
+ 
