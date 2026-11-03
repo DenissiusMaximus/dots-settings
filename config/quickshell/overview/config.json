@@ -33,9 +33,9 @@
       "backdropOpacity": 0.5,
       "enableBlur": false,
       "panelOpacity": 0.95,
-      "workspaceOpacity": 1.0,
+      "workspaceOpacity": 1,
       "emptyWorkspaceWallpaperOverlayOpacity": 0.2,
-      "windowOverlayOpacity": 0.0,
+      "windowOverlayOpacity": 0,
       "glassMode": false
     },
     "emptyWorkspaceWallpaper": "/home/denis/.local/state/caelestia/wallpaper/current",
