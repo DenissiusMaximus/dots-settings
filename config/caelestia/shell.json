@@ -80,5 +80,8 @@
     },
     "border": {
         "thickness": 0
+    },
+    "notifs": {
+        "actionOnClick": true
     }
 }

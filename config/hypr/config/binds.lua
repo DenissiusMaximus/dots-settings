@@ -134,11 +134,10 @@ hl.bind("XF86MonBrightnessDown", hl.dsp.exec_cmd(shellCall .. "brightness set 5%
 -- Screen Capture
 -- Screen Capture
 hl.bind(mainMod .. " + P",     hl.dsp.exec_cmd("hyprpicker -a -n"))
--- Print: screenshot of the focused monitor straight into the editor (swappy)
+-- Print: screenshot of the focused monitor -> clipboard + notification (click it to edit in swappy)
 hl.bind("Print", function()
     local mon = hl.get_active_monitor()
-    local out = mon and (" -o '" .. mon.name .. "'") or ""
-    hl.exec_cmd("grim" .. out .. " - | swappy -f -")
+    hl.exec_cmd("~/.config/hypr/scripts/screenshot.sh '" .. (mon and mon.name or "") .. "'")
 end)
 -- Ctrl + Print: select a region
 hl.bind("CONTROL + Print",     hl.dsp.exec_cmd("caelestia screenshot -r"))
