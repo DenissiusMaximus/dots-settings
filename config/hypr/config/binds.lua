@@ -139,8 +139,8 @@ hl.bind("Print", function()
     local mon = hl.get_active_monitor()
     hl.exec_cmd("~/.config/hypr/scripts/screenshot.sh '" .. (mon and mon.name or "") .. "'")
 end)
--- Ctrl + Print: select a region
-hl.bind("CONTROL + Print",     hl.dsp.exec_cmd("caelestia screenshot -r"))
+-- Ctrl + Print: select a region -> clipboard + notification (click it to edit)
+hl.bind("CONTROL + Print",     hl.dsp.exec_cmd("~/.config/hypr/scripts/screenshot.sh --region"))
 hl.bind(mainMod .. " + Print", hl.dsp.exec_cmd("caelestia screenshot --freeze"))
 
 -- Theming and Wallpaper

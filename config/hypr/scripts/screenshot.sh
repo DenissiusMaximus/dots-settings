@@ -1,12 +1,17 @@
 #!/usr/bin/env bash
-# Screenshot of the focused monitor -> clipboard + notification.
-# Clicking the notification opens the screenshot in swappy (editor).
-mon="$1"
+# Screenshot -> clipboard + notification. Clicking the notification opens it in swappy.
+#   screenshot.sh <monitor>   - whole monitor
+#   screenshot.sh --region    - select a region with slurp
 dir="${XDG_CACHE_HOME:-$HOME/.cache}/screenshots"
 mkdir -p "$dir"
 file="$dir/$(date +%Y%m%d%H%M%S).png"
 
-grim ${mon:+-o "$mon"} "$file" || exit 1
+if [ "$1" = --region ]; then
+    geom=$(slurp -d) || exit 0   # Esc cancels
+    grim -g "$geom" "$file" || exit 1
+else
+    grim ${1:+-o "$1"} "$file" || exit 1
+fi
 wl-copy < "$file"
 
 action=$(notify-send -a screenshot -i image-x-generic-symbolic \
