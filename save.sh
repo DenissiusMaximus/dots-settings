@@ -7,7 +7,7 @@ CONFIGS=(hypr caelestia fish kitty alacritty fuzzel gtk-3.0 gtk-4.0 qt5ct qt6ct 
          btop cava micro uwsm xsettingsd noctalia Thunar shelly swash zed spicetify
          quickshell/overview systemd/user kdeglobals mimeapps.list user-dirs.dirs user-dirs.locale)
 HOME_FILES=(.zshrc .bashrc .bash_profile .gitconfig .icons .local/bin/app-keyboard-layout.sh)
-ETC_FILES=(greetd)
+ETC_FILES=(greetd caelestia-patches pacman.d/hooks/caelestia-patches.hook)
 
 rm -rf config home etc
 mkdir -p config home etc packages
@@ -26,7 +26,9 @@ for f in "${HOME_FILES[@]}"; do
 done
 
 for f in "${ETC_FILES[@]}"; do
-    [ -r "/etc/$f" ] && cp -a "/etc/$f" "etc/$f" 2>/dev/null || true
+    [ -r "/etc/$f" ] || continue
+    mkdir -p "etc/$(dirname "$f")"
+    cp -a "/etc/$f" "etc/$f" 2>/dev/null || true
 done
 
 pacman -Qqen > packages/repo.txt

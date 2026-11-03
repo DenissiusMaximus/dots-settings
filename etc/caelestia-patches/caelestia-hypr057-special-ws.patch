@@ -1,8 +1,10 @@
-caelestia-shell: fix special workspaces in the bar on Hyprland 0.57 (caelestia-dots/shell#2235)
-
+# Fix special workspaces (scratchpads) in the caelestia bar on Hyprland 0.57
+# (caelestia-dots/shell#2235, based on https://gist.github.com/romanvesely/ad4c7e41b3cac561ff06b44c62501d2b)
+# + fixed slots 1..5 in order (1 = "special", then special:2..special:5).
+diff -ru a/modules/bar/components/workspaces/SpecialWorkspaces.qml b/modules/bar/components/workspaces/SpecialWorkspaces.qml
 --- a/modules/bar/components/workspaces/SpecialWorkspaces.qml
 +++ b/modules/bar/components/workspaces/SpecialWorkspaces.qml
-@@ -15,10 +15,10 @@
+@@ -15,10 +15,24 @@
  
      required property HyprlandMonitor monitor
  
@@ -11,19 +13,38 @@ caelestia-shell: fix special workspaces in the bar on Hyprland 0.57 (caelestia-d
      readonly property var wsIds: {
          const allMonitors = !Config.bar.workspaces.perMonitor;
 -        return Hypr.workspaces.values.filter(w => w.name.startsWith("special:") && (allMonitors || w.monitor === root.monitor)).map(w => w.id);
-+        return Hypr.workspaces.values.filter(w => w.name.startsWith("special:") && (allMonitors || w.monitor === root.monitor)).map(w => Hypr.wsId(w));
++        const shown = Math.max(1, Config.bar.workspaces.shown);
++        const ids = [];
++        for (let n = 1; n <= shown; n++)
++            ids.push(Hypr.specialWsId(Hypr.specialSlotName(n)));
++        // keep the active one visible even if it is beyond the fixed slots
++        if (activeSpecialId !== 0 && !ids.includes(activeSpecialId))
++            ids.push(activeSpecialId);
++        for (const w of Hypr.workspaces.values) {
++            if (!w.name.startsWith("special:") || !(allMonitors || w.monitor === root.monitor))
++                continue;
++            const id = Hypr.wsId(w);
++            if (!ids.includes(id))
++                ids.push(id);
++        }
++        return ids;
      }
      readonly property int activeIdx: wsIds.indexOf(activeSpecialId)
      readonly property real maxViewY: Math.max(0, view.contentHeight - height)
-@@ -223,7 +223,7 @@
+@@ -223,9 +237,9 @@
  
              const ws = view.itemAt(event.x, event.y - view.y) as Workspace;
              if (ws) {
 -                const match = Hypr.workspaces.values.find(w => w.id === ws.ws);
-+                const match = Hypr.workspaces.values.find(w => Hypr.wsId(w) === ws.ws);
-                 if (match)
-                     Hypr.toggleSpecial(Hypr.trimWsName(match.name));
+-                if (match)
+-                    Hypr.toggleSpecial(Hypr.trimWsName(match.name));
++                const name = Hypr.specialWsName(ws.ws);
++                if (name)
++                    Hypr.toggleSpecial(Hypr.trimWsName(name));
              } else {
+                 Hypr.toggleSpecial("special");
+             }
+diff -ru a/modules/bar/components/workspaces/Workspace.qml b/modules/bar/components/workspaces/Workspace.qml
 --- a/modules/bar/components/workspaces/Workspace.qml
 +++ b/modules/bar/components/workspaces/Workspace.qml
 @@ -37,7 +37,7 @@
@@ -35,16 +56,19 @@ caelestia-shell: fix special workspaces in the bar on Hyprland 0.57 (caelestia-d
          return mon && mon !== monitor;
      }
      readonly property color fgColour: {
-@@ -129,7 +129,7 @@
+@@ -128,8 +128,9 @@
                  if (label)
                      return label;
  
 -                const ws = Hypr.workspaces.values.find(w => w.id === root.ws);
+-                const wsName = !ws || ws.name == root.ws ? root.ws : Hypr.trimWsName(ws.name)[0];
 +                const ws = Hypr.workspaces.values.find(w => Hypr.wsId(w) === root.ws);
-                 const wsName = !ws || ws.name == root.ws ? root.ws : Hypr.trimWsName(ws.name)[0];
++                const slotName = root.ws < 0 ? Hypr.specialWsName(root.ws) : "";
++                const wsName = ws && ws.name != root.ws ? Hypr.trimWsName(ws.name)[0] : (slotName ? Hypr.trimWsName(slotName)[0] : root.ws);
  
                  const capitalisation = Config.bar.workspaces.capitalisation;
-@@ -253,7 +253,7 @@
+                 if (capitalisation === BarWorkspaceCapitalisation.Upper)
+@@ -252,7 +253,7 @@
  
          property string name
          readonly property string icon: Icons.matchIconRuleList(Hypr.trimWsName(name), root.iconRules)
@@ -53,9 +77,20 @@ caelestia-shell: fix special workspaces in the bar on Hyprland 0.57 (caelestia-d
  
          readonly property Connections conn: Connections {
              function onNameChanged(): void {
+@@ -265,6 +266,8 @@
+         function updateName(): void {
+             if (wsObj)
+                 name = wsObj.name;
++            else if (root.ws < 0)
++                name = Hypr.specialWsName(root.ws);
+         }
+ 
+         onWsObjChanged: updateName()
+Only in a/modules/bar/components/workspaces: Workspace.qml.orig
+diff -ru a/services/Hypr.qml b/services/Hypr.qml
 --- a/services/Hypr.qml
 +++ b/services/Hypr.qml
-@@ -97,8 +97,25 @@
+@@ -97,8 +97,41 @@
          return name.startsWith("special:") ? name.slice("special:".length) : name;
      }
  
@@ -74,6 +109,22 @@ caelestia-shell: fix special workspaces in the bar on Hyprland 0.57 (caelestia-d
 +        for (let i = 0; i < name.length; i++)
 +            hash = (hash * 31 + name.charCodeAt(i)) % 1000000;
 +        return -1000 - hash;
++    }
++
++    // local patch: fixed scratchpad slots shown in the bar, like numbered workspaces
++    // (slot 1 = the main "special", then special:2, special:3, ...)
++    function specialSlotName(n: int): string {
++        return n === 1 ? "special:special" : `special:${n}`;
++    }
++
++    function specialWsName(id: int): string {
++        for (let n = 1; n <= 10; n++) {
++            const name = specialSlotName(n);
++            if (specialWsId(name) === id)
++                return name;
++        }
++        const ws = workspaces.values.find(w => w.name.startsWith("special:") && specialWsId(w.name) === id);
++        return ws ? ws.name : "";
 +    }
 +
      function toplevelsForWs(ws: int, ignoredTags = []): list<HyprlandToplevel> {

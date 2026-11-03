@@ -1,0 +1,11 @@
+[Trigger]
+Operation = Install
+Operation = Upgrade
+Type = Package
+Target = caelestia-shell
+Target = caelestia-shell-git
+
+[Action]
+Description = Applying local caelestia-shell patches (/etc/caelestia-patches)...
+When = PostTransaction
+Exec = /etc/caelestia-patches/apply.sh
