@@ -13,6 +13,7 @@ end
 -- Key: the combination with digit keys written as N. Shortcuts without a name
 -- here still work, they are just listed with their technical keys.
 local DESC = {
+    ["SUPER + H"]                                = "Float / tile window (remembered per app)",
     ["SUPER + Escape"]                        = "Kill a window (click it)",
     ["SUPER + Q"]                             = "Close window",
     ["SUPER + D"]                             = "Maximise window",
@@ -92,17 +93,37 @@ local DESC = {
     ["SUPER + CONTROL + S"]                   = "Move window to workspace 1",
 }
 
--- hl.bind with the description from DESC added
+-- hl.bind with the description from DESC added and the changes made in Nexus
+-- applied. Overrides live in settings.json, "bindOverrides", keyed by the
+-- original combination as written in DESC:
+--   "SUPER + Q": { "keys": "SUPER + K" }   -> moved to SUPER + K
+--   "SUPER + Q": { "enabled": false }      -> turned off
+--   "SUPER + N": { "keys": "SUPER + ALT" } -> number series: only the modifiers change
+local OVERRIDES = S("bindOverrides", {})
+
 local function bind(keys, action, opts)
     local norm = keys:gsub("code:1[0-9]", "N")
-    local desc = DESC[keys] or DESC[norm]
-    if desc then
+    local id = DESC[keys] and keys or (DESC[norm] and norm or nil)
+    if id then
+        local o = OVERRIDES[id]
+        if type(o) == "table" then
+            if o.enabled == false then return end
+            if type(o.keys) == "string" and o.keys ~= "" then
+                if id ~= keys then
+                    keys = o.keys .. " + " .. keys:match("(code:1[0-9])$")
+                else
+                    keys = o.keys
+                end
+            end
+        end
         opts = opts or {}
-        if not opts.description then opts.description = desc end
+        if not opts.description then opts.description = DESC[id] end
     end
-    if opts then return hl.bind(keys, action, opts) end
-    return hl.bind(keys, action)
+    local ok, err
+    if opts then ok, err = pcall(hl.bind, keys, action, opts) else ok, err = pcall(hl.bind, keys, action) end
+    if not ok then print("bind '" .. keys .. "' failed: " .. tostring(err)) end
 end
+BIND = bind -- used by float_memory.lua (SUPER + H)
 
 ---------------------------
 ---- WINDOW MANAGEMENT ----

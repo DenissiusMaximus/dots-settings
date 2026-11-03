@@ -11,8 +11,17 @@ local AUTOSTART = {
     { name = "Allow root apps on the screen", cmd = "xhost +SI:localuser:root" },
 }
 
+-- Changes made in Nexus: settings.json "autostartOverrides", keyed by name:
+--   { "enabled": false } or { "cmd": "..." }
+local OVERRIDES = S("autostartOverrides", {})
+
 hl.on("hyprland.start", function ()
     for _, a in ipairs(AUTOSTART) do
-        hl.exec_cmd(a.cmd)
+        local o = OVERRIDES[a.name]
+        local cmd = a.cmd
+        if type(o) == "table" and type(o.cmd) == "string" and o.cmd ~= "" then cmd = o.cmd end
+        if not (type(o) == "table" and o.enabled == false) then
+            hl.exec_cmd(cmd)
+        end
     end
 end)

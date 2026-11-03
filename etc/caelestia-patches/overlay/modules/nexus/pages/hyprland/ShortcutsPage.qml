@@ -4,6 +4,7 @@ import QtQuick
 import QtQuick.Layouts
 import Caelestia.Config
 import Caelestia.I18n
+import qs.services
 import qs.modules.nexus.common
 import qs.modules.nexus.pages.hyprland
 
@@ -13,6 +14,13 @@ PageBase {
     property string newKeys
     property string newCommand
     property string newAutostart
+
+    // Which row is open: "bind:<id>", "custom:<n>", "auto:<name>", "autoc:<n>"
+    property string expandedId
+
+    function toggle(id: string): void {
+        expandedId = expandedId === id ? "" : id;
+    }
 
     title: Tr.tr("Shortcuts & apps")
 
@@ -68,39 +76,122 @@ PageBase {
         InfoRow {
             first: true
             icon: "info"
-            label: Tr.tr("All key combinations")
-            subtext: Tr.tr("Built-in ones are listed by name, the ones you add by their keys")
+            label: Tr.tr("Click a shortcut to change its keys or turn it off")
+            subtext: Tr.tr("Keys are written like SUPER + SHIFT + F1")
         }
 
         Repeater {
             model: HyprSettings.builtinBinds
 
-            InfoRow {
-                required property var modelData
+            ExpandRow {
+                id: b
 
-                label: modelData.name
-                value: modelData.keys
+                required property var modelData
+                readonly property string rowId: `bind:${modelData.id}`
+
+                text: modelData.name
+                subtext: !modelData.enabled ? Tr.tr("Turned off") : modelData.changed ? Tr.tr("Changed (default: %1)").arg(HyprSettings.prettyKeys(modelData.defaultKeys, modelData.series)) : ""
+                value: HyprSettings.prettyKeys(modelData.keys, modelData.series)
+                dimmed: !modelData.enabled
+                expanded: root.expandedId === rowId
+                onClicked: root.toggle(rowId)
+
+                ColumnLayout {
+                    spacing: Tokens.spacing.extraSmall / 2
+                    TextFieldRow {
+                        label: b.modelData.series ? Tr.tr("Modifier keys") : Tr.tr("Keys")
+                        subtext: b.modelData.series ? Tr.tr("Used together with the number keys 1…9") : Tr.tr("e.g. SUPER + K")
+                        value: b.modelData.keys
+                        onEditingFinished: v => {
+                            const k = v.trim();
+                            if (k && k !== b.modelData.keys)
+                                HyprSettings.setBindOverride(b.modelData.id, {
+                                    keys: k === b.modelData.defaultKeys ? "" : k
+                                });
+                        }
+                    }
+
+                    ToggleRow {
+                        text: Tr.tr("Enabled")
+                        checked: b.modelData.enabled
+                        onToggled: HyprSettings.setBindOverride(b.modelData.id, {
+                            enabled: checked
+                        })
+                    }
+
+                    RowButton {
+                        icon: "restart_alt"
+                        text: Tr.tr("Reset to default")
+                        subtext: HyprSettings.prettyKeys(b.modelData.defaultKeys, b.modelData.series)
+                        disabled: !b.modelData.changed
+                        onClicked: HyprSettings.setBindOverride(b.modelData.id, {
+                            keys: "",
+                            enabled: true
+                        })
+                    }
+                }
             }
         }
 
+        // Shortcuts added here: shown by their keys
         Repeater {
             model: HyprSettings.list("binds")
 
-            EntryRow {
+            ExpandRow {
+                id: c
+
                 required property var modelData
                 required property int index
+                readonly property string rowId: `custom:${index}`
 
                 icon: "keyboard_command_key"
-                label: modelData.keys
+                text: modelData.keys
                 subtext: modelData.command
-                onRemoved: HyprSettings.removeAt("binds", index)
+                expanded: root.expandedId === rowId
+                onClicked: root.toggle(rowId)
+
+                ColumnLayout {
+                    spacing: Tokens.spacing.extraSmall / 2
+                    TextFieldRow {
+                        label: Tr.tr("Keys")
+                        value: c.modelData.keys
+                        onEditingFinished: v => {
+                            if (v.trim() && v.trim() !== c.modelData.keys)
+                                HyprSettings.updateAt("binds", c.index, {
+                                    keys: v.trim()
+                                });
+                        }
+                    }
+
+                    WideFieldRow {
+                        label: Tr.tr("Command")
+                        value: c.modelData.command
+                        onEditingFinished: v => {
+                            if (v.trim() && v.trim() !== c.modelData.command)
+                                HyprSettings.updateAt("binds", c.index, {
+                                    command: v.trim()
+                                });
+                        }
+                    }
+
+                    RowButton {
+                        icon: "delete"
+                        text: Tr.tr("Delete shortcut")
+                        iconLabel.color: Colours.palette.m3error
+                        label.color: Colours.palette.m3error
+                        onClicked: {
+                            root.expandedId = "";
+                            HyprSettings.removeAt("binds", c.index);
+                        }
+                    }
+                }
             }
         }
 
         TextFieldRow {
             id: keysField
 
-            label: Tr.tr("Keys")
+            label: Tr.tr("New shortcut: keys")
             placeholderText: "SUPER + B"
             onValueEdited: v => root.newKeys = v
         }
@@ -108,7 +199,7 @@ PageBase {
         WideFieldRow {
             id: commandField
 
-            label: Tr.tr("Command")
+            label: Tr.tr("New shortcut: command")
             placeholderText: "obsidian"
             onValueEdited: v => root.newCommand = v
         }
@@ -140,38 +231,109 @@ PageBase {
             first: true
             icon: "info"
             label: Tr.tr("Commands run when Hyprland starts")
-            subtext: Tr.tr("Built-in ones are listed by name; new ones take effect on the next login")
+            subtext: Tr.tr("Click one to change or turn it off; takes effect on the next login")
         }
 
         Repeater {
-            model: HyprSettings.builtinAutostart
+            model: HyprSettings.builtinAutostartEff
 
-            InfoRow {
+            ExpandRow {
+                id: a
+
                 required property var modelData
+                readonly property string rowId: `auto:${modelData.name}`
 
                 icon: "play_circle"
-                label: modelData.name
-                subtext: modelData.cmd
+                text: modelData.name
+                subtext: !modelData.enabled ? Tr.tr("Turned off") : modelData.cmd
+                dimmed: !modelData.enabled
+                expanded: root.expandedId === rowId
+                onClicked: root.toggle(rowId)
+
+                ColumnLayout {
+                    spacing: Tokens.spacing.extraSmall / 2
+                    WideFieldRow {
+                        label: Tr.tr("Command")
+                        value: a.modelData.cmd
+                        onEditingFinished: v => {
+                            const cmd = v.trim();
+                            if (cmd && cmd !== a.modelData.cmd)
+                                HyprSettings.setAutostartOverride(a.modelData.name, {
+                                    cmd: cmd === a.modelData.defaultCmd ? "" : cmd
+                                });
+                        }
+                    }
+
+                    ToggleRow {
+                        text: Tr.tr("Run at startup")
+                        checked: a.modelData.enabled
+                        onToggled: HyprSettings.setAutostartOverride(a.modelData.name, {
+                            enabled: checked
+                        })
+                    }
+
+                    RowButton {
+                        icon: "restart_alt"
+                        text: Tr.tr("Reset to default")
+                        subtext: a.modelData.defaultCmd
+                        disabled: !a.modelData.changed
+                        onClicked: HyprSettings.setAutostartOverride(a.modelData.name, {
+                            cmd: "",
+                            enabled: true
+                        })
+                    }
+                }
             }
         }
 
+        // Commands added here: shown as the command itself
         Repeater {
             model: HyprSettings.list("autostart")
 
-            EntryRow {
+            ExpandRow {
+                id: ac
+
                 required property var modelData
                 required property int index
+                readonly property string rowId: `autoc:${index}`
 
                 icon: "play_circle"
-                label: modelData
-                onRemoved: HyprSettings.removeAt("autostart", index)
+                text: modelData
+                expanded: root.expandedId === rowId
+                onClicked: root.toggle(rowId)
+
+                ColumnLayout {
+                    spacing: Tokens.spacing.extraSmall / 2
+                    WideFieldRow {
+                        label: Tr.tr("Command")
+                        value: ac.modelData
+                        onEditingFinished: v => {
+                            if (v.trim() && v.trim() !== ac.modelData) {
+                                const l = [...HyprSettings.list("autostart")];
+                                l[ac.index] = v.trim();
+                                HyprSettings.set("autostart", l);
+                            }
+                        }
+                    }
+
+                    RowButton {
+                        icon: "delete"
+                        text: Tr.tr("Remove from autostart")
+                        iconLabel.color: Colours.palette.m3error
+                        label.color: Colours.palette.m3error
+                        onClicked: {
+                            root.expandedId = "";
+                            HyprSettings.removeAt("autostart", ac.index);
+                        }
+                    }
+                }
             }
         }
 
         WideFieldRow {
             id: autostartField
 
-            label: Tr.tr("Command")
+            label: Tr.tr("New command")
             placeholderText: "telegram-desktop"
             onValueEdited: v => root.newAutostart = v
         }

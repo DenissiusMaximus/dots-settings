@@ -83,11 +83,12 @@ git add -A && git commit -m update && git push
 | Workspaces | кількість столів на монітор, яка програма на якому столі, огляд (`Super + Tab`) |
 | Input | розкладки, клавіші перемикання, чутливість миші, тачпад і жести, розкладка окремо для кожної програми |
 | Displays & system | роздільність, частота і масштаб кожного монітора, VRR, поглинання вікон терміналом, вставка середньою кнопкою |
-| Shortcuts & apps | програми для `Super + Enter/E/W/T/C`, власні комбінації клавіш, автозапуск |
+| Shortcuts & apps | програми для `Super + Enter/E/W/T/C`; усі комбінації клавіш (вбудовані можна перепризначити, вимкнути чи скинути, свої — додати й видалити); автозапуск так само |
 
 Як це працює:
 
 - Значення зберігаються в `config/hypr/settings.json` (у системі `~/.config/hypr/settings.json`). Lua-конфіги читають їх через `S("ключ", типове_значення)`, а сам файл завантажує `config/hypr/config/settings.lua`. Після кожної зміни Nexus виконує `hyprctl reload`. Файл можна редагувати й вручну.
+- Вбудовані комбінації та автозапуск лишаються в `binds.lua` / `autostart.lua` (назви — таблиці `DESC` і `AUTOSTART`), а зміни з Nexus зберігаються окремо: `bindOverrides` і `autostartOverrides` у `settings.json`.
 - Огляд пише у свій `config/quickshell/overview/config.json` і після змін перезапускається.
 - Самі сторінки лежать в `etc/caelestia-patches/overlay/` (`apply.sh` копіює їх у `/etc/xdg/quickshell/caelestia`), а в меню Nexus їх додає патч `caelestia-nexus-hyprland-pages.patch`. Обидва застосовуються автоматично після кожного оновлення `caelestia-shell`.
 

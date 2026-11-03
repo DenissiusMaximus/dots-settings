@@ -29,9 +29,26 @@ Singleton {
     // app-keyboard-layout.service (per-app keyboard layout)
     property bool perAppLayout
 
-    // Built-in shortcuts with a description (from `hyprctl binds -j`), grouped by
-    // description: [{ name, keys: ["SUPER + 1", ...] }]
-    property var builtinBinds: []
+    // Built-in shortcuts from the DESC table of binds.lua: [{ id, name }]
+    property var bindDefs: []
+    // Same, with the overrides from settings.json applied
+    readonly property var builtinBinds: {
+        const ov = get("bindOverrides", {});
+        return bindDefs.map(d => {
+            const o = ov[d.id] ?? {};
+            const series = / \+ N$/.test(d.id);
+            const defKeys = series ? d.id.slice(0, -4) : d.id;
+            return {
+                id: d.id,
+                name: d.name,
+                series,
+                defaultKeys: defKeys,
+                keys: o.keys || defKeys,
+                enabled: o.enabled !== false,
+                changed: !!(o.keys || o.enabled === false)
+            };
+        });
+    }
 
     // Built-in autostart entries from ~/.config/hypr/config/autostart.lua: [{ name, cmd }]
     property var builtinAutostart: []
@@ -92,8 +109,62 @@ Singleton {
         return keys.join("  /  ");
     }
 
-    function refreshBinds(): void {
-        bindsProc.running = true;
+    // Pretty form of a combination string: "SUPER + CONTROL + code:82" -> "SUPER + CTRL + Keypad −"
+    function prettyKeys(keys: string, series: bool): string {
+        const parts = keys.split("+").map(k => k.trim()).filter(k => k).map(k => {
+            const u = k.toUpperCase();
+            if (u === "CONTROL" || u === "CTRL")
+                return "CTRL";
+            if (["SUPER", "ALT", "SHIFT"].includes(u))
+                return u;
+            return keyLabel(k);
+        });
+        if (series)
+            parts.push("1…9");
+        return parts.join(" + ");
+    }
+
+    function setBindOverride(id: string, changes: var): void {
+        const ov = JSON.parse(JSON.stringify(get("bindOverrides", {})));
+        const o = Object.assign(ov[id] ?? {}, changes);
+        if (o.enabled !== false)
+            delete o.enabled;
+        if (!o.keys)
+            delete o.keys;
+        if (Object.keys(o).length)
+            ov[id] = o;
+        else
+            delete ov[id];
+        set("bindOverrides", ov);
+    }
+
+    // Built-in autostart entries with overrides applied
+    readonly property var builtinAutostartEff: {
+        const ov = get("autostartOverrides", {});
+        return builtinAutostart.map(a => {
+            const o = ov[a.name] ?? {};
+            return {
+                name: a.name,
+                defaultCmd: a.cmd,
+                cmd: o.cmd || a.cmd,
+                enabled: o.enabled !== false,
+                changed: !!(o.cmd || o.enabled === false)
+            };
+        });
+    }
+
+    function setAutostartOverride(name: string, changes: var): void {
+        const ov = JSON.parse(JSON.stringify(get("autostartOverrides", {})));
+        const o = Object.assign(ov[name] ?? {}, changes);
+        if (o.enabled !== false)
+            delete o.enabled;
+        if (!o.cmd)
+            delete o.cmd;
+        if (Object.keys(o).length)
+            ov[name] = o;
+        else
+            delete ov[name];
+        set("autostartOverrides", ov);
     }
 
     function get(path: string, fallback: var): var {
@@ -106,7 +177,14 @@ Singleton {
         return v === undefined || v === null ? fallback : v;
     }
 
+    // Changes made before settings.json finished loading
+    property var pending: []
+
     function set(path: string, value: var): void {
+        if (!root.loaded) {
+            root.pending = [...root.pending, [path, value]];
+            return;
+        }
         const copy = JSON.parse(JSON.stringify(root.data));
         const parts = path.split(".");
         let o = copy;
@@ -123,6 +201,14 @@ Singleton {
     }
 
     // Lists (appWorkspaces, monitors, autostart, binds)
+    function flushPending(): void {
+        root.loaded = true;
+        const p = root.pending;
+        root.pending = [];
+        for (const [path, value] of p)
+            set(path, value);
+    }
+
     function list(path: string): var {
         const v = get(path, []);
         return Array.isArray(v) ? v : [];
@@ -230,9 +316,9 @@ Singleton {
             } catch (e) {
                 console.warn("hypr settings.json: parse error", e);
             }
-            root.loaded = true;
+            root.flushPending();
         }
-        onLoadFailed: root.loaded = true
+        onLoadFailed: root.flushPending()
     }
 
     FileView {
@@ -295,51 +381,29 @@ Singleton {
         }
     }
 
-    Process {
-        id: bindsProc
-
-        running: true
-        command: ["hyprctl", "-j", "binds"]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                let list = [];
-                try {
-                    list = JSON.parse(text);
-                } catch (e) {
-                    return;
-                }
-                const groups = [];
-                const byName = {};
-                for (const b of list) {
-                    if (!b.has_description || !b.description)
-                        continue;
-                    const combo = root.comboLabel(b.modmask, b.key, b.keycode);
-                    let g = byName[b.description];
-                    if (!g) {
-                        g = byName[b.description] = {
-                            name: b.description,
-                            keys: []
-                        };
-                        groups.push(g);
-                    }
-                    if (!g.keys.includes(combo))
-                        g.keys.push(combo);
-                }
-                root.builtinBinds = groups.map(g => ({
-                            name: g.name,
-                            keys: root.keysLabel(g.keys)
-                        }));
-            }
+    // DESC table of ~/.config/hypr/config/binds.lua: ["SUPER + Q"] = "Close window"
+    FileView {
+        path: `${root.configDir}/hypr/config/binds.lua`
+        watchChanges: true
+        printErrors: false
+        onFileChanged: reload()
+        onLoaded: {
+            const t = text();
+            const start = t.indexOf("local DESC = {");
+            const end = t.indexOf("\n}", start);
+            if (start < 0 || end < 0)
+                return;
+            const out = [];
+            const re = /\[\s*"([^"]+)"\s*\]\s*=\s*"((?:[^"\\]|\\.)*)"/g;
+            const block = t.slice(start, end);
+            let r;
+            while ((r = re.exec(block)) !== null)
+                out.push({
+                    id: r[1],
+                    name: r[2].replace(/\\(.)/g, "$1")
+                });
+            root.bindDefs = out;
         }
-    }
-
-    Connections {
-        function onRawEvent(event: HyprlandEvent): void {
-            if (event.name === "configreloaded")
-                root.refreshBinds();
-        }
-
-        target: Hyprland
     }
 
     FileView {
