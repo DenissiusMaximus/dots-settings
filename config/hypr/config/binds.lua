@@ -57,6 +57,10 @@ end
 hl.bind(mainMod .. " + mouse:272", hl.dsp.window.drag())
 hl.bind(mainMod .. " + mouse:273", hl.dsp.window.resize())
 
+-- Resize (split ratio) with keyboard
+hl.bind(mainMod .. " + ALT + Right", hl.dsp.layout("splitratio 0.05"),  { repeating = true })
+hl.bind(mainMod .. " + ALT + Left",  hl.dsp.layout("splitratio -0.05"), { repeating = true })
+
 -- Zoom
 local function zoomfunction(value)
     local zoomvalue = hl.get_config("cursor:zoom_factor")
