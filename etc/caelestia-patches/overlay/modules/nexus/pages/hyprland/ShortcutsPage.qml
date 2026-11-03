@@ -94,7 +94,7 @@ PageBase {
             onValueEdited: v => root.newKeys = v
         }
 
-        TextFieldRow {
+        WideFieldRow {
             id: commandField
 
             label: Tr.tr("Command")
@@ -145,7 +145,7 @@ PageBase {
             }
         }
 
-        TextFieldRow {
+        WideFieldRow {
             id: autostartField
 
             label: Tr.tr("Command")
@@ -166,11 +166,10 @@ PageBase {
         }
     }
 
-    component AppField: TextFieldRow {
+    component AppField: WideFieldRow {
         required property string key
         required property string fallback
 
-        subtext: Tr.tr("Command to run")
         value: HyprSettings.get(`apps.${key}`, fallback)
 
         onEditingFinished: v => {
