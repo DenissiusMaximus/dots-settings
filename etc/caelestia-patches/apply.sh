@@ -8,14 +8,19 @@ DIR="$(dirname "$(readlink -f "$0")")"
 TARGET=/etc/xdg/quickshell/caelestia
 [ -d "$TARGET" ] || exit 0
 
+# New files (e.g. the Hyprland pages in Nexus) are copied as-is from overlay/
+if [ -d "$DIR/overlay" ]; then
+    cp -r "$DIR/overlay/." "$TARGET/" && echo "caelestia-patches: copied overlay files"
+fi
+
 for p in "$DIR"/*.patch; do
     [ -e "$p" ] || continue
     name="$(basename "$p")"
-    # Forward check first: `patch -R -t` on an add-only patch prints
-    # "Unreversed patch detected! Ignoring -R" and still exits 0.
-    if patch -d "$TARGET" -p1 -N --dry-run -s -t < "$p" >/dev/null 2>&1; then
-        patch -d "$TARGET" -p1 -N -s -t --no-backup-if-mismatch < "$p" && echo "caelestia-patches: applied $name"
-    elif patch -d "$TARGET" -p1 -R --dry-run -s -t < "$p" >/dev/null 2>&1; then
+    # `patch` exits 0 even when it skips hunks, so look at its output instead
+    out="$(LC_ALL=C patch -d "$TARGET" -p1 -N --dry-run < "$p" 2>&1)"
+    if [ $? -eq 0 ] && ! printf '%s' "$out" | grep -qE 'ignored|Skipping|FAILED|Reversed'; then
+        patch -d "$TARGET" -p1 -N -s --no-backup-if-mismatch < "$p" && echo "caelestia-patches: applied $name"
+    elif printf '%s' "$out" | grep -q 'Reversed (or previously applied)' && ! printf '%s' "$out" | grep -q 'FAILED'; then
         echo "caelestia-patches: $name already applied"
     else
         echo "caelestia-patches: $name does not apply (maybe fixed upstream), skipped"

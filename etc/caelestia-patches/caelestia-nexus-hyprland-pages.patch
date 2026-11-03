@@ -1,0 +1,101 @@
+# Register the local Hyprland pages (files in overlay/modules/nexus/pages/hyprland) in Nexus.
+diff -ru a/modules/nexus/PageCompRegistry.qml b/modules/nexus/PageCompRegistry.qml
+--- a/modules/nexus/PageCompRegistry.qml	2026-11-03 22:42:25.424987795 +0200
++++ b/modules/nexus/PageCompRegistry.qml	2026-11-03 22:42:25.431091530 +0200
+@@ -16,6 +16,7 @@
+ import qs.modules.nexus.pages.services
+ import qs.modules.nexus.pages.wallandstyle
+ import qs.modules.nexus.pages.panels.taskbar
++import qs.modules.nexus.pages.hyprland
+ 
+ QtObject {
+     id: root
+@@ -175,6 +176,46 @@
+                 }
+             }
+         },
++
++        // Hyprland (local addition, see /etc/caelestia-patches/overlay)
++        Component {
++            StackPage {
++                Component {
++                    WindowsPage {}
++                }
++            }
++        },
++        Component {
++            StackPage {
++                Component {
++                    WorkspacesPage {}
++                }
++                Component {
++                    AppWorkspaces {}
++                }
++            }
++        },
++        Component {
++            StackPage {
++                Component {
++                    InputPage {}
++                }
++            }
++        },
++        Component {
++            StackPage {
++                Component {
++                    DisplaysPage {}
++                }
++            }
++        },
++        Component {
++            StackPage {
++                Component {
++                    ShortcutsPage {}
++                }
++            }
++        },
+ 
+         // About
+         Component {
+diff -ru a/modules/nexus/PageRegistry.qml b/modules/nexus/PageRegistry.qml
+--- a/modules/nexus/PageRegistry.qml	2026-11-03 22:42:25.424882893 +0200
++++ b/modules/nexus/PageRegistry.qml	2026-11-03 22:42:25.431031466 +0200
+@@ -83,6 +83,38 @@
+             category: "shell"
+         },
+ 
++        // Hyprland (local addition, see /etc/caelestia-patches/overlay)
++        {
++            label: Tr.tr("Windows & look"),
++            icon: "select_window",
++            description: Tr.tr("Gaps, borders, opacity, blur, animations"),
++            category: "hyprland"
++        },
++        {
++            label: Tr.tr("Workspaces"),
++            icon: "workspaces",
++            description: Tr.tr("Workspaces, app rules, overview"),
++            category: "hyprland"
++        },
++        {
++            label: Tr.tr("Input"),
++            icon: "keyboard",
++            description: Tr.tr("Keyboard layouts, mouse, touchpad"),
++            category: "hyprland"
++        },
++        {
++            label: Tr.tr("Displays & system"),
++            icon: "monitor",
++            description: Tr.tr("Resolution, scale, refresh rate"),
++            category: "hyprland"
++        },
++        {
++            label: Tr.tr("Shortcuts & apps"),
++            icon: "keyboard_command_key",
++            description: Tr.tr("Default apps, custom shortcuts, autostart"),
++            category: "hyprland"
++        },
++
+         // About
+         {
+             label: Tr.tr("About"),
