@@ -67,8 +67,11 @@
             "perMonitor": true,
             "showWindows": true,
             "showWindowsOnSpecialWorkspaces": true,
-            "specialDisplayType": "shapes"
+            "specialDisplayType": "Shapes"
         }
+    },
+    "border": {
+        "thickness": 0
     },
     "dashboard": {
         "enabled": true
@@ -76,13 +79,13 @@
     "launcher": {
         "showOnHover": false
     },
+    "notifs": {
+        "actionOnClick": true
+    },
     "services": {
         "smartScheme": true
     },
-    "border": {
-        "thickness": 0
-    },
-    "notifs": {
-        "actionOnClick": true
+    "paths": {
+        "mediaGif": ""
     }
 }
