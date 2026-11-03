@@ -21,13 +21,19 @@ hl.bind(mainMod .. " + D",           hl.dsp.window.fullscreen({ mode = 1 }))
 hl.bind(mainMod .. " + F",           hl.dsp.window.fullscreen())
 hl.bind(mainMod .. " + J",           hl.dsp.layout("togglesplit"))
 
--- Change focus
-hl.bind(mainMod .. " + Left",  hl.dsp.focus({ direction = "left" }))
-hl.bind(mainMod .. " + Right", hl.dsp.focus({ direction = "right" }))
-hl.bind(mainMod .. " + Up",    hl.dsp.focus({ direction = "up" }))
-hl.bind(mainMod .. " + Down",  hl.dsp.focus({ direction = "down" }))
-hl.bind("ALT + Tab",           hl.dsp.window.cycle_next())
-hl.bind(mainMod .. " + Tab",   hl.dsp.window.cycle_next())
+-- Change focus (and raise the focused floating window on top)
+local function focusRaise(dsp)
+    return function()
+        hl.dispatch(dsp)
+        hl.dispatch(hl.dsp.window.bring_to_top())
+    end
+end
+hl.bind(mainMod .. " + Left",  focusRaise(hl.dsp.focus({ direction = "left" })))
+hl.bind(mainMod .. " + Right", focusRaise(hl.dsp.focus({ direction = "right" })))
+hl.bind(mainMod .. " + Up",    focusRaise(hl.dsp.focus({ direction = "up" })))
+hl.bind(mainMod .. " + Down",  focusRaise(hl.dsp.focus({ direction = "down" })))
+hl.bind("ALT + Tab",           focusRaise(hl.dsp.window.cycle_next()))
+hl.bind(mainMod .. " + Tab",   focusRaise(hl.dsp.window.cycle_next()))
 
 -- Move active window around workspaces & monitors
 hl.bind(mainMod .. " + SHIFT + Up",                   hl.dsp.window.move({ direction = "u" }))
