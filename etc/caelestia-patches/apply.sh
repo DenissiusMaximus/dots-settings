@@ -11,10 +11,12 @@ TARGET=/etc/xdg/quickshell/caelestia
 for p in "$DIR"/*.patch; do
     [ -e "$p" ] || continue
     name="$(basename "$p")"
-    if patch -d "$TARGET" -p1 -R --dry-run -s -t < "$p" >/dev/null 2>&1; then
-        echo "caelestia-patches: $name already applied"
-    elif patch -d "$TARGET" -p1 -N --dry-run -s -t < "$p" >/dev/null 2>&1; then
+    # Forward check first: `patch -R -t` on an add-only patch prints
+    # "Unreversed patch detected! Ignoring -R" and still exits 0.
+    if patch -d "$TARGET" -p1 -N --dry-run -s -t < "$p" >/dev/null 2>&1; then
         patch -d "$TARGET" -p1 -N -s -t --no-backup-if-mismatch < "$p" && echo "caelestia-patches: applied $name"
+    elif patch -d "$TARGET" -p1 -R --dry-run -s -t < "$p" >/dev/null 2>&1; then
+        echo "caelestia-patches: $name already applied"
     else
         echo "caelestia-patches: $name does not apply (maybe fixed upstream), skipped"
     fi
