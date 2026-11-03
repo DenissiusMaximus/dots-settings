@@ -98,7 +98,7 @@ PageBase {
             id: commandField
 
             label: Tr.tr("Command")
-            placeholderText: "uwsm app -- obsidian"
+            placeholderText: "obsidian"
             onValueEdited: v => root.newCommand = v
         }
 
@@ -149,7 +149,7 @@ PageBase {
             id: autostartField
 
             label: Tr.tr("Command")
-            placeholderText: "uwsm app -- telegram-desktop -startintray"
+            placeholderText: "telegram-desktop"
             onValueEdited: v => root.newAutostart = v
         }
 
