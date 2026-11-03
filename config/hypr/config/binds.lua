@@ -33,17 +33,14 @@ hl.bind(mainMod .. " + Right", focusRaise(hl.dsp.focus({ direction = "right" }))
 hl.bind(mainMod .. " + Up",    focusRaise(hl.dsp.focus({ direction = "up" })))
 hl.bind(mainMod .. " + Down",  focusRaise(hl.dsp.focus({ direction = "down" })))
 hl.bind("ALT + Tab",           focusRaise(hl.dsp.window.cycle_next()))
-hl.bind(mainMod .. " + Tab",   focusRaise(hl.dsp.window.cycle_next()))
+hl.bind(mainMod .. " + Tab",   hl.dsp.exec_cmd("qs ipc -c overview call overview toggle")) -- workspace overview
 
 -- Move active window around workspaces & monitors
 hl.bind(mainMod .. " + SHIFT + Up",                   hl.dsp.window.move({ direction = "u" }))
 hl.bind(mainMod .. " + SHIFT + Right",                hl.dsp.window.move({ direction = "r" }))
 hl.bind(mainMod .. " + SHIFT + Left",                 hl.dsp.window.move({ direction = "l" }))
 hl.bind(mainMod .. " + SHIFT + Down",                 hl.dsp.window.move({ direction = "d" }))
-for i = 1, 9 do
-    hl.bind(mainMod .. " + SHIFT + " .. digitCode(i),
-        hl.dsp.window.move({ workspace = i }))
-end
+-- SUPER + SHIFT + <n>: see "Special workspaces" below (scratchpad-aware)
 hl.bind(mainMod .. " + SHIFT + mouse_up",             hl.dsp.window.move({ monitor   = "-1" }))
 hl.bind(mainMod .. " + SHIFT + mouse_down",           hl.dsp.window.move({ monitor   = "+1" }))
 hl.bind(mainMod .. " + CONTROL + SHIFT + Right",      hl.dsp.window.move({ workspace = "m+1" }))
@@ -162,9 +159,7 @@ hl.bind(mainMod .. " + A", hl.dsp.exec_cmd(shellCall .. "drawers toggle sidebar"
 
 -- Focus on workspace number
 -- Absolute
-for i = 1, 9 do
-    hl.bind(mainMod .. " + " .. digitCode(i), hl.dsp.focus({ workspace = i }))
-end
+-- SUPER + <n>: see "Special workspaces" below (scratchpad-aware)
 -- Relative
 for i = 1, NUM_WPM do
     local key = i % 10
@@ -182,23 +177,95 @@ hl.bind(mainMod .. " + mouse_up",             hl.dsp.focus({ workspace = "m+1" }
 hl.bind(mainMod .. " + CONTROL + mouse_up",   hl.dsp.focus({ workspace = "m-1" }))
 hl.bind(mainMod .. " + CONTROL + mouse_down", hl.dsp.focus({ workspace = "m+1" }))
 
--- Special workspace (scratchpad)
--- Toggle: send the window to the scratchpad, or bring it back if it's already there
-local function toggleScratchpadWindow()
-    local win = hl.get_active_window()
-    if not win or not win.workspace then return end
-    if win.workspace.name:find("^special") then
-        local mon = hl.get_active_monitor()
-        if not mon or not mon.active_workspace then return end
-        hl.dispatch(hl.dsp.window.move({ workspace = tostring(mon.active_workspace.id) }))
-        mon = hl.get_active_monitor()
-        if mon and mon.active_special_workspace and mon.active_special_workspace.is_empty then
+-- Special workspaces (scratchpads)
+-- Scratchpad 1 is the main one ("special"), 2..9 are "special:2".."special:9"
+-- (new scratchpads created in the SUPER + Tab overview get the same numbers).
+local function scratchpadWorkspace(n)
+    return n == 1 and "special" or ("special:" .. n)
+end
+
+-- Full workspace name as Hyprland reports it ("special" is reported as "special:special")
+local function scratchpadFullName(n)
+    return n == 1 and "special:special" or ("special:" .. n)
+end
+
+local function openScratchpadName()
+    local mon = hl.get_active_monitor()
+    return mon and mon.active_special_workspace and mon.active_special_workspace.name or nil
+end
+
+-- Show / hide scratchpad n
+local function toggleScratchpad(n)
+    return function()
+        if n == 1 then
             hl.dispatch(hl.dsp.workspace.toggle_special())
+        else
+            hl.dispatch(hl.dsp.workspace.toggle_special(tostring(n)))
         end
-    else
-        hl.dispatch(hl.dsp.window.move({ workspace = "special" }))
     end
 end
-hl.bind(mainMod .. " + SHIFT + S", toggleScratchpadWindow)
-hl.bind(mainMod .. " + S",         hl.dsp.workspace.toggle_special())
+
+-- Send the active window to scratchpad n, or bring it back if it's already there
+local function toggleScratchpadWindow(n)
+    return function()
+        local win = hl.get_active_window()
+        if not win or not win.workspace then return end
+        local target = scratchpadWorkspace(n)
+        local inSpecial = win.workspace.name:find("^special") ~= nil
+        if win.workspace.name == target or (n == 1 and inSpecial) then
+            local mon = hl.get_active_monitor()
+            if not mon or not mon.active_workspace then return end
+            hl.dispatch(hl.dsp.window.move({ workspace = tostring(mon.active_workspace.id) }))
+            mon = hl.get_active_monitor()
+            if mon and mon.active_special_workspace and mon.active_special_workspace.is_empty then
+                hl.dispatch(toggleScratchpad(n))
+            end
+        else
+            hl.dispatch(hl.dsp.window.move({ workspace = target }))
+        end
+    end
+end
+
+hl.bind(mainMod .. " + SHIFT + S", toggleScratchpadWindow(1))
+-- Toggle a scratchpad by its full name ("special:special", "special:2", ...)
+local function toggleScratchpadByName(name)
+    if name == "special:special" then
+        hl.dispatch(hl.dsp.workspace.toggle_special())
+    else
+        hl.dispatch(hl.dsp.workspace.toggle_special((name:gsub("^special:", ""))))
+    end
+end
+
+-- Remember the last scratchpad that was open (however it was opened)
+local lastScratchpad = "special:special"
+hl.on("workspace.special_active", function()
+    local open = openScratchpadName()
+    if open then lastScratchpad = open end
+end)
+
+-- SUPER + S: hide whichever scratchpad is open, otherwise reopen the last used one
+hl.bind(mainMod .. " + S", function()
+    toggleScratchpadByName(openScratchpadName() or lastScratchpad)
+end)
+-- SUPER + <n> / SUPER + SHIFT + <n>: while a scratchpad is open they work on
+-- scratchpads (switch to / send window to scratchpad n), otherwise on normal workspaces.
+for i = 1, 9 do
+    hl.bind(mainMod .. " + " .. digitCode(i), function()
+        local open = openScratchpadName()
+        if not open then
+            hl.dispatch(hl.dsp.focus({ workspace = i }))
+        elseif open ~= scratchpadFullName(i) then
+            hl.dispatch(toggleScratchpad(i))
+        end
+    end)
+    hl.bind(mainMod .. " + SHIFT + " .. digitCode(i), function()
+        if openScratchpadName() then
+            hl.dispatch(hl.dsp.window.move({ workspace = scratchpadWorkspace(i), follow = false }))
+        else
+            hl.dispatch(hl.dsp.window.move({ workspace = i }))
+        end
+    end)
+    hl.bind(mainMod .. " + ALT + " .. digitCode(i),             toggleScratchpad(i))
+    hl.bind(mainMod .. " + CONTROL + ALT + " .. digitCode(i),   toggleScratchpadWindow(i))
+end
 hl.bind(mainMod .. " + CONTROL + S", hl.dsp.window.move({ workspace = 1 }))

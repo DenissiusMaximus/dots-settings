@@ -66,7 +66,8 @@
             "occupiedBg": false,
             "perMonitor": true,
             "showWindows": true,
-            "showWindowsOnSpecialWorkspaces": true
+            "showWindowsOnSpecialWorkspaces": true,
+            "specialDisplayType": "shapes"
         }
     },
     "dashboard": {

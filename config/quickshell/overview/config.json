@@ -1,0 +1,45 @@
+{
+  "appearance": {
+    "colorSource": "caelestia",
+    "caelestia": {
+      "autoRefresh": true,
+      "refreshInterval": 2000,
+      "accentProfile": "material"
+    },
+    "rounding": {
+      "small": 12,
+      "normal": 17,
+      "large": 25,
+      "screenRounding": 90,
+      "windowRounding": 55
+    },
+    "font": {
+      "family": {
+        "main": "Rubik",
+        "title": "Rubik",
+        "expressive": "Rubik"
+      }
+    }
+  },
+  "overview": {
+    "rows": 2,
+    "columns": 5,
+    "scale": 0.175,
+    "hideEmptyRows": true,
+    "closeOnFocusLoss": true,
+    "showSpecialWorkspaces": true,
+    "effects": {
+      "enableBackdrop": true,
+      "backdropOpacity": 0.5,
+      "enableBlur": false,
+      "panelOpacity": 0.95,
+      "workspaceOpacity": 1.0,
+      "emptyWorkspaceWallpaperOverlayOpacity": 0.2,
+      "windowOverlayOpacity": 0.0,
+      "glassMode": false
+    },
+    "emptyWorkspaceWallpaper": "/home/denis/.local/state/caelestia/wallpaper/current",
+    "workspaceSpacing": 10,
+    "backgroundPadding": 20
+  }
+}

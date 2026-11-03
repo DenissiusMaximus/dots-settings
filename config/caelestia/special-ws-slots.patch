@@ -1,0 +1,87 @@
+diff --color -ru a/modules/bar/components/workspaces/SpecialWorkspaces.qml b/modules/bar/components/workspaces/SpecialWorkspaces.qml
+--- a/modules/bar/components/workspaces/SpecialWorkspaces.qml	2026-11-03 22:20:30.134927853 +0200
++++ b/modules/bar/components/workspaces/SpecialWorkspaces.qml	2026-11-03 22:20:52.504088644 +0200
+@@ -18,7 +18,21 @@
+     readonly property int activeSpecialId: Hypr.specialWsId(monitor?.lastIpcObject.specialWorkspace?.name ?? "")
+     readonly property var wsIds: {
+         const allMonitors = !Config.bar.workspaces.perMonitor;
+-        return Hypr.workspaces.values.filter(w => w.name.startsWith("special:") && (allMonitors || w.monitor === root.monitor)).map(w => Hypr.wsId(w));
++        const shown = Math.max(1, Config.bar.workspaces.shown);
++        const ids = [];
++        for (let n = 1; n <= shown; n++)
++            ids.push(Hypr.specialWsId(Hypr.specialSlotName(n)));
++        // keep the active one visible even if it is beyond the fixed slots
++        if (activeSpecialId !== 0 && !ids.includes(activeSpecialId))
++            ids.push(activeSpecialId);
++        for (const w of Hypr.workspaces.values) {
++            if (!w.name.startsWith("special:") || !(allMonitors || w.monitor === root.monitor))
++                continue;
++            const id = Hypr.wsId(w);
++            if (!ids.includes(id))
++                ids.push(id);
++        }
++        return ids;
+     }
+     readonly property int activeIdx: wsIds.indexOf(activeSpecialId)
+     readonly property real maxViewY: Math.max(0, view.contentHeight - height)
+@@ -223,9 +237,9 @@
+ 
+             const ws = view.itemAt(event.x, event.y - view.y) as Workspace;
+             if (ws) {
+-                const match = Hypr.workspaces.values.find(w => Hypr.wsId(w) === ws.ws);
+-                if (match)
+-                    Hypr.toggleSpecial(Hypr.trimWsName(match.name));
++                const name = Hypr.specialWsName(ws.ws);
++                if (name)
++                    Hypr.toggleSpecial(Hypr.trimWsName(name));
+             } else {
+                 Hypr.toggleSpecial("special");
+             }
+diff --color -ru a/modules/bar/components/workspaces/Workspace.qml b/modules/bar/components/workspaces/Workspace.qml
+--- a/modules/bar/components/workspaces/Workspace.qml	2026-11-03 22:20:30.148699521 +0200
++++ b/modules/bar/components/workspaces/Workspace.qml	2026-11-03 22:20:44.396014526 +0200
+@@ -129,7 +129,8 @@
+                     return label;
+ 
+                 const ws = Hypr.workspaces.values.find(w => Hypr.wsId(w) === root.ws);
+-                const wsName = !ws || ws.name == root.ws ? root.ws : Hypr.trimWsName(ws.name)[0];
++                const slotName = root.ws < 0 ? Hypr.specialWsName(root.ws) : "";
++                const wsName = ws && ws.name != root.ws ? Hypr.trimWsName(ws.name)[0] : (slotName ? Hypr.trimWsName(slotName)[0] : root.ws);
+ 
+                 const capitalisation = Config.bar.workspaces.capitalisation;
+                 if (capitalisation === BarWorkspaceCapitalisation.Upper)
+@@ -265,6 +266,8 @@
+         function updateName(): void {
+             if (wsObj)
+                 name = wsObj.name;
++            else if (root.ws < 0)
++                name = Hypr.specialWsName(root.ws);
+         }
+ 
+         onWsObjChanged: updateName()
+diff --color -ru a/services/Hypr.qml b/services/Hypr.qml
+--- a/services/Hypr.qml	2026-11-03 22:20:30.165637990 +0200
++++ b/services/Hypr.qml	2026-11-03 22:20:44.395463621 +0200
+@@ -114,6 +114,22 @@
+         return -1000 - hash;
+     }
+ 
++    // local patch: fixed scratchpad slots shown in the bar, like numbered workspaces
++    // (slot 1 = the main "special", then special:2, special:3, ...)
++    function specialSlotName(n: int): string {
++        return n === 1 ? "special:special" : `special:${n}`;
++    }
++
++    function specialWsName(id: int): string {
++        for (let n = 1; n <= 10; n++) {
++            const name = specialSlotName(n);
++            if (specialWsId(name) === id)
++                return name;
++        }
++        const ws = workspaces.values.find(w => w.name.startsWith("special:") && specialWsId(w.name) === id);
++        return ws ? ws.name : "";
++    }
++
+     function toplevelsForWs(ws: int, ignoredTags = []): list<HyprlandToplevel> {
+         return toplevels.values.filter(t => t.workspace && wsId(t.workspace) === ws && !isToplevelIgnored(t, ignoredTags));
+     }
