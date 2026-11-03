@@ -88,5 +88,10 @@
     "paths": {
         "mediaGif": "",
         "sessionGif": ""
+    },
+    "utilities": {
+        "toasts": {
+            "configLoaded": false
+        }
     }
 }
