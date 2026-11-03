@@ -29,18 +29,7 @@ ColumnLayout {
     signal clicked
 
     Layout.fillWidth: true
-    // An open row becomes its own block, separated from its neighbours
-    Layout.topMargin: expanded ? (Tokens.spacing?.medium ?? 12) : 0
-    Layout.bottomMargin: expanded ? (Tokens.spacing?.medium ?? 12) : 0
     spacing: (Tokens.spacing?.extraSmall ?? 4) / 2
-
-    Behavior on Layout.topMargin {
-        Anim {}
-    }
-
-    Behavior on Layout.bottomMargin {
-        Anim {}
-    }
 
     ConnectedRect {
         id: header

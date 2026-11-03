@@ -106,17 +106,7 @@ PageBase {
                 readonly property bool isLast: index === HyprSettings.list("appWorkspaces").length - 1
 
                 Layout.fillWidth: true
-                Layout.topMargin: expanded ? Tokens.spacing.medium : 0
-                Layout.bottomMargin: expanded ? Tokens.spacing.medium : 0
                 spacing: (Tokens.spacing?.extraSmall ?? 4) / 2
-
-                Behavior on Layout.topMargin {
-                    Anim {}
-                }
-
-                Behavior on Layout.bottomMargin {
-                    Anim {}
-                }
 
                 RowButton {
                     id: ruleBtn
