@@ -76,6 +76,7 @@ local DESC = {
     ["SUPER + SHIFT + W"]                     = "Random wallpaper",
     ["SUPER + V"]                             = "Clipboard history",
     ["SUPER + A"]                             = "Notifications sidebar",
+    ["SUPER + B"]                             = "Show / hide the side bar",
     ["SUPER + CONTROL + N"]                   = "Go to workspace N of this monitor",
     ["SUPER + CONTROL + Right"]               = "Next workspace",
     ["SUPER + CONTROL + Left"]                = "Previous workspace",
@@ -263,6 +264,7 @@ bind(mainMod .. " + V", hl.dsp.exec_cmd("caelestia clipboard"))
 
 -- Notifications
 bind(mainMod .. " + A", hl.dsp.exec_cmd(shellCall .. "drawers toggle sidebar"))
+bind(mainMod .. " + B", hl.dsp.exec_cmd("~/.config/hypr/scripts/toggle-bar.sh"))
 
 -------------------------------
 ---- WORKSPACES & MONITORS ----
