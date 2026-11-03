@@ -12,9 +12,13 @@ hl.curve("overshoot",      { type = "bezier", points = { {0.5, 0.9}, {0.1, 1.1} 
 hl.curve("easy",           { type = "spring", mass = 1, stiffness = 500, dampening = 35 })
 hl.curve("rubber",         { type = "spring", mass = 1, stiffness = 200,  dampening = 15 })
 
--- Animations
-hl.animation({ leaf = "global",              enabled = true, speed = 3, bezier = "quick"                 })
-hl.animation({ leaf = "windows",             enabled = true, speed = 3, spring = "easy",  style = "slide" })
-hl.animation({ leaf = "workspaces",          enabled = true, speed = 5, bezier = "quick", style = "slide" })
-hl.animation({ leaf = "specialWorkspaceIn",  enabled = true, speed = 2, bezier = "quick", style = "slide top"})
-hl.animation({ leaf = "specialWorkspaceOut", enabled = true, speed = 2, bezier = "quick", style = "slide bottom"})
+-- Animations (on/off and speed are edited in Nexus: SUPER + Z -> Windows & look)
+local animOn = S("animations.enabled", true)
+local animScale = S("animations.speed", 1) -- >1 = slower, <1 = faster
+local function sp(v) return math.max(0.1, v * animScale) end
+hl.config({ animations = { enabled = animOn } })
+hl.animation({ leaf = "global",              enabled = true, speed = sp(3), bezier = "quick"                 })
+hl.animation({ leaf = "windows",             enabled = true, speed = sp(3), spring = "easy",  style = "slide" })
+hl.animation({ leaf = "workspaces",          enabled = true, speed = sp(5), bezier = "quick", style = "slide" })
+hl.animation({ leaf = "specialWorkspaceIn",  enabled = true, speed = sp(2), bezier = "quick", style = "slide top"})
+hl.animation({ leaf = "specialWorkspaceOut", enabled = true, speed = sp(2), bezier = "quick", style = "slide bottom"})

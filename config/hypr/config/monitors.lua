@@ -1,15 +1,22 @@
 -- Monitor wiki https://wiki.hypr.land/Configuring/Basics/Monitors/
--- Example: output can be found with hyprctl monitors. Edit variables.lua for the monitor outputs instead of here directly
--- hl.monitor({
---     output    = MONITOR1,
---     mode      = "1920x1080@60",
---     position  = "0x0",
---     scale     = "1",
--- })
+-- Per-monitor resolution / scale are set in Nexus (SUPER + Z -> Displays & system)
+-- and stored in ~/.config/hypr/settings.json ("monitors").
 
+-- Fallback for every monitor without its own rule
 hl.monitor({
-    output    = MONITOR1,
+    output    = "",
     mode      = "preferred",
     position  = "auto",
     scale     = "1",
 })
+
+for _, m in ipairs(S("monitors", {})) do
+    if type(m) == "table" and m.output and m.output ~= "" then
+        hl.monitor({
+            output   = m.output,
+            mode     = m.mode or "preferred",
+            position = m.position or "auto",
+            scale    = tostring(m.scale or 1),
+        })
+    end
+end

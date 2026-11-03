@@ -10,10 +10,10 @@ hl.config({
         col = {
             splash = CACHYLGREEN,
         },
-        middle_click_paste = false,
-        enable_swallow = true,
+        middle_click_paste = S("misc.middleClickPaste", false),
+        enable_swallow = S("misc.swallow", true),
         swallow_regex = "(kitty|ghostty|[Kk]onsole|Alacritty|gnome-terminal|xfce[0-9]?-terminal)",
-        vrr = 3,
+        vrr = S("misc.vrr", 3),
     },
     render = {
         direct_scanout = 2,

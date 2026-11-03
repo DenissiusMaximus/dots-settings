@@ -73,21 +73,37 @@ git add -A && git commit -m update && git push
 | `etc/` | системні файли з `/etc` (greetd, патчі caelestia і pacman-хук до них) |
 | `packages/` | списки пакетів (repo, AUR), сервісів і shell |
 
+## Налаштування Hyprland у Nexus (`Super + Z`)
+
+У Nexus (вікно налаштувань Caelestia) є окрема група сторінок для Hyprland:
+
+| Сторінка | Що там |
+|---|---|
+| Windows & look | відступи, рамки, заокруглення, прозорість, розмиття, анімації, програми з запам'ятованим плаваючим режимом (`Super + H`) |
+| Workspaces | кількість столів на монітор, яка програма на якому столі, огляд (`Super + Tab`) |
+| Input | розкладки, клавіші перемикання, чутливість миші, тачпад і жести, розкладка окремо для кожної програми |
+| Displays & system | роздільність, частота і масштаб кожного монітора, VRR, поглинання вікон терміналом, вставка середньою кнопкою |
+| Shortcuts & apps | програми для `Super + Enter/E/W/T/C`, власні комбінації клавіш, автозапуск |
+
+Як це працює:
+
+- Значення зберігаються в `config/hypr/settings.json` (у системі `~/.config/hypr/settings.json`). Lua-конфіги читають їх через `S("ключ", типове_значення)`, а сам файл завантажує `config/hypr/config/settings.lua`. Після кожної зміни Nexus виконує `hyprctl reload`. Файл можна редагувати й вручну.
+- Огляд пише у свій `config/quickshell/overview/config.json` і після змін перезапускається.
+- Самі сторінки лежать в `etc/caelestia-patches/overlay/` (`apply.sh` копіює їх у `/etc/xdg/quickshell/caelestia`), а в меню Nexus їх додає патч `caelestia-nexus-hyprland-pages.patch`. Обидва застосовуються автоматично після кожного оновлення `caelestia-shell`.
+
 ## Hyprland: яка програма на якому столі
 
-Файл: `config/hypr/config/app_workspaces.lua` (у системі — `~/.config/hypr/config/app_workspaces.lua`).
+Найпростіше — у Nexus: `Super + Z` → Workspaces → App workspaces. Правила зберігаються в `config/hypr/settings.json` (у системі — `~/.config/hypr/settings.json`), застосовує їх `config/hypr/config/app_workspaces.lua`:
 
-```lua
-local apps = {
-    ["[Ss]potify"] = "3",
-    ["firefox"]    = "2",
-}
+```json
+"appWorkspaces": [
+  { "class": "[Ss]potify", "workspace": "3", "silent": false }
+]
 ```
 
-- Ключ — клас вікна (regex). Дізнатися клас: `hyprctl clients`, поле `class`.
-- Кілька програм в одному рядку: `["firefox|librewolf"] = "2"`.
-- Значення — стіл: `"1"`, `"2"`, ... або іменований `"name:gaming"`.
-- `"3 silent"` — відкрити вікно на столі 3, не перемикаючись на нього.
+- `class` — клас вікна (regex). Дізнатися клас: `hyprctl clients`, поле `class`. Кілька програм в одному правилі: `"firefox|librewolf"`.
+- `workspace` — стіл: `"1"`, `"2"`, ... або іменований `"name:gaming"`.
+- `silent: true` — відкрити вікно на цьому столі, не перемикаючись на нього.
 
 Після зміни: `hyprctl reload`.
 
@@ -122,7 +138,7 @@ local apps = {
 
 ### Робочі столи
 
-На кожному моніторі 3 столи (`NUM_WPM` у `variables.lua`).
+На кожному моніторі 3 столи (змінюється в Nexus → Workspaces або `workspaces.perMonitor` у `settings.json`).
 
 | Клавіші | Дія |
 |---|---|

@@ -1,0 +1,11 @@
+# Hide the session menu gif (and its gap) when paths.sessionGif is empty.
+--- a/modules/session/Content.qml	2026-11-03 22:41:58.787849374 +0200
++++ b/modules/session/Content.qml	2026-11-03 22:41:58.814263460 +0200
+@@ -54,6 +54,7 @@
+         height: Tokens.sizes.session.button
+         sourceSize.width: width * ((QsWindow.window as QsWindow)?.devicePixelRatio ?? 1)
+ 
++        visible: Config.paths.sessionGif !== ""
+         playing: visible
+         asynchronous: true
+         speed: Config.general.sessionGifSpeed

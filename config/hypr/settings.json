@@ -1,0 +1,55 @@
+{
+  "apps": {
+    "terminal": "kitty",
+    "fileManager": "thunar",
+    "browser": "firefox",
+    "editor": "gnome-text-editor --new-window",
+    "calculator": "gnome-calculator"
+  },
+  "workspaces": {
+    "perMonitor": 3
+  },
+  "appWorkspaces": [
+    {
+      "class": "[Ss]potify",
+      "workspace": "3",
+      "silent": false
+    }
+  ],
+  "general": {
+    "gapsIn": 2,
+    "gapsOut": 4,
+    "borderSize": 1,
+    "resizeOnBorder": true
+  },
+  "decoration": {
+    "rounding": 10,
+    "activeOpacity": 0.95,
+    "inactiveOpacity": 0.85,
+    "dimSpecial": 0.3,
+    "blur": {
+      "enabled": true,
+      "size": 5,
+      "passes": 4
+    }
+  },
+  "animations": {
+    "enabled": true,
+    "speed": 1
+  },
+  "input": {
+    "kbLayout": "us,ua",
+    "kbOptions": "grp:alt_shift_toggle",
+    "sensitivity": -0.5,
+    "naturalScroll": true,
+    "gestures": true
+  },
+  "misc": {
+    "vrr": 3,
+    "swallow": true,
+    "middleClickPaste": false
+  },
+  "monitors": [],
+  "autostart": [],
+  "binds": []
+}
