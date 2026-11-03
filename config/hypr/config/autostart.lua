@@ -1,10 +1,18 @@
 -- Auto-start config
 -- if you dont use UWSM add your auto start programs here, otherwise use XDG autostart https://wiki.archlinux.org/title/XDG_Autostart
+-- Names are shown in Nexus (SUPER + Z -> Shortcuts & apps -> Autostart); keep one entry per line.
+-- Commands added in Nexus are in extra_autostart.lua / settings.json.
+
+local AUTOSTART = {
+    { name = "Pass session environment to apps", cmd = "dbus-update-activation-environment --systemd --all" },
+    { name = "Caelestia shell (bar, launcher, notifications)", cmd = "caelestia shell -d" },
+    { name = "Workspace overview (SUPER + Tab)", cmd = "qs -c overview -d" },
+    { name = "Clipboard history", cmd = "wl-paste --watch cliphist store" },
+    { name = "Allow root apps on the screen", cmd = "xhost +SI:localuser:root" },
+}
 
 hl.on("hyprland.start", function ()
-    hl.exec_cmd("dbus-update-activation-environment --systemd --all")
-    hl.exec_cmd("caelestia shell -d")
-    hl.exec_cmd("qs -c overview -d") -- workspace overview (SUPER + Tab), ~/.config/quickshell/overview
-    hl.exec_cmd("wl-paste --watch cliphist store")
-    hl.exec_cmd("xhost +SI:localuser:root")
+    for _, a in ipairs(AUTOSTART) do
+        hl.exec_cmd(a.cmd)
+    end
 end)

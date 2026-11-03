@@ -14,6 +14,11 @@
       "class": "[Ss]potify",
       "workspace": "3",
       "silent": false
+    },
+    {
+      "class": "org\\.telegram\\.desktop",
+      "workspace": "3",
+      "silent": false
     }
   ],
   "general": {

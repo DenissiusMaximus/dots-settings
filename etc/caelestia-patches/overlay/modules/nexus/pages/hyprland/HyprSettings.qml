@@ -3,6 +3,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import Quickshell.Hyprland
 
 // Local addition (~/dotfiles, /etc/caelestia-patches/overlay): backs the Hyprland
 // pages in Nexus. Values live in ~/.config/hypr/settings.json, which the Lua config
@@ -27,6 +28,73 @@ Singleton {
 
     // app-keyboard-layout.service (per-app keyboard layout)
     property bool perAppLayout
+
+    // Built-in shortcuts with a description (from `hyprctl binds -j`), grouped by
+    // description: [{ name, keys: ["SUPER + 1", ...] }]
+    property var builtinBinds: []
+
+    // Built-in autostart entries from ~/.config/hypr/config/autostart.lua: [{ name, cmd }]
+    property var builtinAutostart: []
+
+    readonly property var modNames: [[64, "SUPER"], [4, "CTRL"], [8, "ALT"], [1, "SHIFT"]]
+    readonly property var keyNames: ({
+            "Return": "Enter",
+            "period": ".",
+            "Minus": "−",
+            "Plus": "+",
+            "Escape": "Esc",
+            "Space": "Space",
+            "Print": "Print",
+            "mouse:272": "Left mouse button",
+            "mouse:273": "Right mouse button",
+            "mouse_up": "Scroll up",
+            "mouse_down": "Scroll down",
+            "code:82": "Keypad −",
+            "code:86": "Keypad +",
+            "Left": "←",
+            "Right": "→",
+            "Up": "↑",
+            "Down": "↓",
+            "XF86AudioRaiseVolume": "Volume up key",
+            "XF86AudioLowerVolume": "Volume down key",
+            "XF86AudioMute": "Mute key",
+            "XF86AudioMicMute": "Mic mute key",
+            "XF86AudioPlay": "Play key",
+            "XF86AudioPause": "Pause key",
+            "XF86AudioNext": "Next track key",
+            "XF86AudioPrev": "Previous track key",
+            "XF86MonBrightnessUp": "Brightness up key",
+            "XF86MonBrightnessDown": "Brightness down key",
+            "XF86Calculator": "Calculator key"
+        })
+
+    function keyLabel(key: string): string {
+        const m = key.match(/^code:(\d+)$/);
+        if (m && +m[1] >= 10 && +m[1] <= 19)
+            return String((+m[1] - 9) % 10);
+        return root.keyNames[key] ?? (key.length === 1 ? key.toUpperCase() : key);
+    }
+
+    function comboLabel(modmask: int, key: string, keycode: int): string {
+        const parts = root.modNames.filter(m => modmask & m[0]).map(m => m[1]);
+        parts.push(keyLabel(key || (keycode ? `code:${keycode}` : "?")));
+        return parts.join(" + ");
+    }
+
+    // "SUPER + 1", "SUPER + 2", ... "SUPER + 9" -> "SUPER + 1…9"
+    function keysLabel(keys: var): string {
+        if (keys.length > 2) {
+            const prefix = k => k.slice(0, k.lastIndexOf(" + ") + 3);
+            const p = prefix(keys[0]);
+            if (keys.every(k => prefix(k) === p))
+                return `${p}${keys[0].slice(p.length)}…${keys[keys.length - 1].slice(p.length)}`;
+        }
+        return keys.join("  /  ");
+    }
+
+    function refreshBinds(): void {
+        bindsProc.running = true;
+    }
 
     function get(path: string, fallback: var): var {
         let v = root.data;
@@ -224,6 +292,72 @@ Singleton {
             overviewFile.setText(JSON.stringify(root.overview, null, 2) + "\n");
             // The overview reads its config only on start
             Quickshell.execDetached(["sh", "-c", "qs -c overview kill >/dev/null 2>&1; sleep 0.3; qs -c overview -d >/dev/null 2>&1"]);
+        }
+    }
+
+    Process {
+        id: bindsProc
+
+        running: true
+        command: ["hyprctl", "-j", "binds"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                let list = [];
+                try {
+                    list = JSON.parse(text);
+                } catch (e) {
+                    return;
+                }
+                const groups = [];
+                const byName = {};
+                for (const b of list) {
+                    if (!b.has_description || !b.description)
+                        continue;
+                    const combo = root.comboLabel(b.modmask, b.key, b.keycode);
+                    let g = byName[b.description];
+                    if (!g) {
+                        g = byName[b.description] = {
+                            name: b.description,
+                            keys: []
+                        };
+                        groups.push(g);
+                    }
+                    if (!g.keys.includes(combo))
+                        g.keys.push(combo);
+                }
+                root.builtinBinds = groups.map(g => ({
+                            name: g.name,
+                            keys: root.keysLabel(g.keys)
+                        }));
+            }
+        }
+    }
+
+    Connections {
+        function onRawEvent(event: HyprlandEvent): void {
+            if (event.name === "configreloaded")
+                root.refreshBinds();
+        }
+
+        target: Hyprland
+    }
+
+    FileView {
+        path: `${root.configDir}/hypr/config/autostart.lua`
+        watchChanges: true
+        printErrors: false
+        onFileChanged: reload()
+        onLoaded: {
+            const out = [];
+            const re = /\{\s*name\s*=\s*"((?:[^"\\]|\\.)*)"\s*,\s*cmd\s*=\s*"((?:[^"\\]|\\.)*)"\s*\}/g;
+            let r;
+            const t = text();
+            while ((r = re.exec(t)) !== null)
+                out.push({
+                    name: r[1].replace(/\\(.)/g, "$1"),
+                    cmd: r[2].replace(/\\(.)/g, "$1")
+                });
+            root.builtinAutostart = out;
         }
     }
 

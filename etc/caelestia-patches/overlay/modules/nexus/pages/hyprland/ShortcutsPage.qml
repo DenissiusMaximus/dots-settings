@@ -60,16 +60,27 @@ PageBase {
             fallback: "gnome-calculator"
         }
 
-        // Custom shortcuts
+        // Shortcuts
         SectionHeader {
-            text: Tr.tr("Custom shortcuts")
+            text: Tr.tr("Shortcuts")
         }
 
         InfoRow {
             first: true
             icon: "info"
-            label: Tr.tr("Run a command with a key combination")
-            subtext: Tr.tr("Keys like SUPER + B or SUPER + SHIFT + F1. Built-in ones are in the dotfiles README")
+            label: Tr.tr("All key combinations")
+            subtext: Tr.tr("Built-in ones are listed by name, the ones you add by their keys")
+        }
+
+        Repeater {
+            model: HyprSettings.builtinBinds
+
+            InfoRow {
+                required property var modelData
+
+                label: modelData.name
+                value: modelData.keys
+            }
         }
 
         Repeater {
@@ -129,7 +140,19 @@ PageBase {
             first: true
             icon: "info"
             label: Tr.tr("Commands run when Hyprland starts")
-            subtext: Tr.tr("Takes effect on the next login")
+            subtext: Tr.tr("Built-in ones are listed by name; new ones take effect on the next login")
+        }
+
+        Repeater {
+            model: HyprSettings.builtinAutostart
+
+            InfoRow {
+                required property var modelData
+
+                icon: "play_circle"
+                label: modelData.name
+                subtext: modelData.cmd
+            }
         }
 
         Repeater {

@@ -60,4 +60,4 @@ local function toggleAndRemember()
     end
 end
 
-hl.bind("SUPER + H", toggleAndRemember)
+hl.bind("SUPER + H", toggleAndRemember, { description = "Float / tile window (remembered per app)" })
