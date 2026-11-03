@@ -57,9 +57,12 @@ end
 hl.bind(mainMod .. " + mouse:272", hl.dsp.window.drag())
 hl.bind(mainMod .. " + mouse:273", hl.dsp.window.resize())
 
--- Resize (split ratio) with keyboard
-hl.bind(mainMod .. " + ALT + Right", hl.dsp.layout("splitratio 0.05"),  { repeating = true })
-hl.bind(mainMod .. " + ALT + Left",  hl.dsp.layout("splitratio -0.05"), { repeating = true })
+-- Resize active window with keyboard (works for tiled and floating windows)
+local resizeStep = 40
+hl.bind(mainMod .. " + ALT + Right", hl.dsp.window.resize({ x =  resizeStep, y = 0, relative = true }), { repeating = true })
+hl.bind(mainMod .. " + ALT + Left",  hl.dsp.window.resize({ x = -resizeStep, y = 0, relative = true }), { repeating = true })
+hl.bind(mainMod .. " + ALT + Down",  hl.dsp.window.resize({ x = 0, y =  resizeStep, relative = true }), { repeating = true })
+hl.bind(mainMod .. " + ALT + Up",    hl.dsp.window.resize({ x = 0, y = -resizeStep, relative = true }), { repeating = true })
 
 -- Zoom
 local function zoomfunction(value)
