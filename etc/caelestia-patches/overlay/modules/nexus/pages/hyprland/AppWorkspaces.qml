@@ -88,8 +88,8 @@ PageBase {
 
         InfoRow {
             first: true
-            last: HyprSettings.list("appWorkspaces").length === 0
             icon: "info"
+            last: HyprSettings.list("appWorkspaces").length === 0 || root.expandedIdx === 0
             label: Tr.tr("These apps always open on the chosen workspace")
             subtext: HyprSettings.list("appWorkspaces").length === 0 ? Tr.tr("No rules yet, add one below") : Tr.tr("Click a rule to change or delete it")
         }
@@ -106,12 +106,23 @@ PageBase {
                 readonly property bool isLast: index === HyprSettings.list("appWorkspaces").length - 1
 
                 Layout.fillWidth: true
+                Layout.topMargin: expanded ? Tokens.spacing.medium : 0
+                Layout.bottomMargin: expanded ? Tokens.spacing.medium : 0
                 spacing: (Tokens.spacing?.extraSmall ?? 4) / 2
+
+                Behavior on Layout.topMargin {
+                    Anim {}
+                }
+
+                Behavior on Layout.bottomMargin {
+                    Anim {}
+                }
 
                 RowButton {
                     id: ruleBtn
 
-                    last: rule.isLast && !rule.expanded
+                    first: rule.expanded || root.expandedIdx === rule.index - 1
+                    last: (rule.isLast && !rule.expanded) || (root.expandedIdx === rule.index + 1 && !rule.expanded)
                     icon: "apps"
                     iconLabel.color: "transparent"
                     text: root.appName(rule.modelData.class)
@@ -169,7 +180,7 @@ PageBase {
 
                 RowButton {
                     visible: rule.expanded
-                    last: rule.isLast
+                    last: true
                     icon: "delete"
                     text: Tr.tr("Delete rule")
                     iconLabel.color: Colours.palette.m3error

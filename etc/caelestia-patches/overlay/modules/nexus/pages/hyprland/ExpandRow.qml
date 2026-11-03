@@ -19,6 +19,9 @@ ColumnLayout {
     property bool expanded
     property bool dimmed // e.g. a turned-off shortcut
     property bool last
+    // A neighbouring row is open: round the corners on that side
+    property bool prevOpen
+    property bool nextOpen
 
     // Settings shown when open; created only while open
     default property Component content
@@ -26,14 +29,26 @@ ColumnLayout {
     signal clicked
 
     Layout.fillWidth: true
+    // An open row becomes its own block, separated from its neighbours
+    Layout.topMargin: expanded ? (Tokens.spacing?.medium ?? 12) : 0
+    Layout.bottomMargin: expanded ? (Tokens.spacing?.medium ?? 12) : 0
     spacing: (Tokens.spacing?.extraSmall ?? 4) / 2
+
+    Behavior on Layout.topMargin {
+        Anim {}
+    }
+
+    Behavior on Layout.bottomMargin {
+        Anim {}
+    }
 
     ConnectedRect {
         id: header
 
         Layout.fillWidth: true
         implicitHeight: row.implicitHeight + Tokens.padding.medium * 2
-        last: root.last && !root.expanded
+        first: root.expanded || root.prevOpen
+        last: (root.last && !root.expanded) || (root.nextOpen && !root.expanded)
 
         StateLayer {
             onClicked: root.clicked()

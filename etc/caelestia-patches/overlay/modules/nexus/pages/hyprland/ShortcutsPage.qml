@@ -76,6 +76,7 @@ PageBase {
         InfoRow {
             first: true
             icon: "info"
+            last: root.expandedId === `bind:${HyprSettings.builtinBinds[0]?.id}`
             label: Tr.tr("Click a shortcut to change its keys or turn it off")
             subtext: Tr.tr("Keys are written like SUPER + SHIFT + F1")
         }
@@ -87,7 +88,11 @@ PageBase {
                 id: b
 
                 required property var modelData
+                required property int index
                 readonly property string rowId: `bind:${modelData.id}`
+
+                prevOpen: index > 0 && root.expandedId === `bind:${HyprSettings.builtinBinds[index - 1].id}`
+                nextOpen: index < HyprSettings.builtinBinds.length - 1 ? root.expandedId === `bind:${HyprSettings.builtinBinds[index + 1].id}` : root.expandedId === "custom:0"
 
                 text: modelData.name
                 subtext: !modelData.enabled ? Tr.tr("Turned off") : modelData.changed ? Tr.tr("Changed (default: %1)").arg(HyprSettings.prettyKeys(modelData.defaultKeys, modelData.series)) : ""
@@ -121,6 +126,7 @@ PageBase {
 
                     RowButton {
                         icon: "restart_alt"
+                        last: true
                         text: Tr.tr("Reset to default")
                         subtext: HyprSettings.prettyKeys(b.modelData.defaultKeys, b.modelData.series)
                         disabled: !b.modelData.changed
@@ -143,6 +149,9 @@ PageBase {
                 required property var modelData
                 required property int index
                 readonly property string rowId: `custom:${index}`
+
+                prevOpen: root.expandedId === (index > 0 ? `custom:${index - 1}` : `bind:${HyprSettings.builtinBinds[HyprSettings.builtinBinds.length - 1]?.id}`)
+                nextOpen: root.expandedId === `custom:${index + 1}`
 
                 icon: "keyboard_command_key"
                 text: modelData.keys
@@ -176,6 +185,7 @@ PageBase {
 
                     RowButton {
                         icon: "delete"
+                        last: true
                         text: Tr.tr("Delete shortcut")
                         iconLabel.color: Colours.palette.m3error
                         label.color: Colours.palette.m3error
@@ -191,6 +201,7 @@ PageBase {
         TextFieldRow {
             id: keysField
 
+            first: root.expandedId !== "" && root.expandedId === (HyprSettings.list("binds").length ? `custom:${HyprSettings.list("binds").length - 1}` : `bind:${HyprSettings.builtinBinds[HyprSettings.builtinBinds.length - 1]?.id}`)
             label: Tr.tr("New shortcut: keys")
             placeholderText: "SUPER + B"
             onValueEdited: v => root.newKeys = v
@@ -230,6 +241,7 @@ PageBase {
         InfoRow {
             first: true
             icon: "info"
+            last: root.expandedId === `auto:${HyprSettings.builtinAutostartEff[0]?.name}`
             label: Tr.tr("Commands run when Hyprland starts")
             subtext: Tr.tr("Click one to change or turn it off; takes effect on the next login")
         }
@@ -241,7 +253,11 @@ PageBase {
                 id: a
 
                 required property var modelData
+                required property int index
                 readonly property string rowId: `auto:${modelData.name}`
+
+                prevOpen: index > 0 && root.expandedId === `auto:${HyprSettings.builtinAutostartEff[index - 1].name}`
+                nextOpen: index < HyprSettings.builtinAutostartEff.length - 1 ? root.expandedId === `auto:${HyprSettings.builtinAutostartEff[index + 1].name}` : root.expandedId === "autoc:0"
 
                 icon: "play_circle"
                 text: modelData.name
@@ -274,6 +290,7 @@ PageBase {
 
                     RowButton {
                         icon: "restart_alt"
+                        last: true
                         text: Tr.tr("Reset to default")
                         subtext: a.modelData.defaultCmd
                         disabled: !a.modelData.changed
@@ -297,6 +314,9 @@ PageBase {
                 required property int index
                 readonly property string rowId: `autoc:${index}`
 
+                prevOpen: root.expandedId === (index > 0 ? `autoc:${index - 1}` : `auto:${HyprSettings.builtinAutostartEff[HyprSettings.builtinAutostartEff.length - 1]?.name}`)
+                nextOpen: root.expandedId === `autoc:${index + 1}`
+
                 icon: "play_circle"
                 text: modelData
                 expanded: root.expandedId === rowId
@@ -318,6 +338,7 @@ PageBase {
 
                     RowButton {
                         icon: "delete"
+                        last: true
                         text: Tr.tr("Remove from autostart")
                         iconLabel.color: Colours.palette.m3error
                         label.color: Colours.palette.m3error
@@ -333,6 +354,7 @@ PageBase {
         WideFieldRow {
             id: autostartField
 
+            first: root.expandedId !== "" && root.expandedId === (HyprSettings.list("autostart").length ? `autoc:${HyprSettings.list("autostart").length - 1}` : `auto:${HyprSettings.builtinAutostartEff[HyprSettings.builtinAutostartEff.length - 1]?.name}`)
             label: Tr.tr("New command")
             placeholderText: "telegram-desktop"
             onValueEdited: v => root.newAutostart = v
