@@ -8,3 +8,6 @@
 -- hl.env("__GLX_VENDOR_LIBRARY_NAME", "nvidia") -- force GBM as a backend
 -- hl.env("LIBVA_DRIVER_NAME", "nvidia") -- Hardware acceleration on NVIDIA GPUs
 -- hl.env("__GL_GSYNC_ALLOWED", "1") -- Controls if G-Sync capable monitors should use Variable Refresh Rate (VRR)
+
+-- icon theme for Quickshell (caelestia); without it icons render as missing-texture checkerboards
+hl.env("QS_ICON_THEME", "breeze-dark")
