@@ -1,5 +1,5 @@
 -- Remember floating/tiled mode per app (window class).
--- Toggle with ALT + H: the choice is saved and applied to every new window
+-- Toggle with SUPER + H: the choice is saved and applied to every new window
 -- of that app (also after restart). State file: ~/.local/state/hypr/float_memory.lua
 -- To forget an app, delete its line from that file and reload Hyprland.
 
@@ -60,4 +60,4 @@ local function toggleAndRemember()
     end
 end
 
-hl.bind("ALT + H", toggleAndRemember)
+hl.bind("SUPER + H", toggleAndRemember)
