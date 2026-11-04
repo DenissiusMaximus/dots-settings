@@ -189,7 +189,27 @@ PageBase {
 
         // Floating memory
         SectionHeader {
-            text: Tr.tr("Remembered floating mode")
+            text: Tr.tr("Floating memory")
+        }
+
+        ToggleRow {
+            first: true
+            text: Tr.tr("Remember every float / tile toggle")
+            subtext: Tr.tr("Mouse, gestures and other shortcuts too, not only SUPER + H")
+            checked: HyprSettings.get("windows.rememberFloat", true)
+            onToggled: HyprSettings.set("windows.rememberFloat", checked)
+        }
+
+        ToggleRow {
+            last: true
+            text: Tr.tr("Remember floating window size")
+            subtext: Tr.tr("Apps reopen floating windows at their last size, also after a reboot")
+            checked: HyprSettings.get("windows.rememberSize", true)
+            onToggled: HyprSettings.set("windows.rememberSize", checked)
+        }
+
+        SectionHeader {
+            text: Tr.tr("Remembered apps")
         }
 
         InfoRow {
