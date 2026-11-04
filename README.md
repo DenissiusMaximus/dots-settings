@@ -90,7 +90,6 @@ git add -A && git commit -m update && git push
 - Значення зберігаються в `config/hypr/settings.json` (у системі `~/.config/hypr/settings.json`). Lua-конфіги читають їх через `S("ключ", типове_значення)`, а сам файл завантажує `config/hypr/config/settings.lua`. Після кожної зміни Nexus виконує `hyprctl reload`. Файл можна редагувати й вручну.
 - Вбудовані комбінації та автозапуск лишаються в `binds.lua` / `autostart.lua` (назви — таблиці `DESC` і `AUTOSTART`), а зміни з Nexus зберігаються окремо: `bindOverrides` і `autostartOverrides` у `settings.json`.
 - Огляд пише у свій `config/quickshell/overview/config.json` і після змін перезапускається.
-- Сторінка **Wallpaper & style → Colours** (замість заглушки upstream, файл `overlay/modules/nexus/pages/wallandstyle/ColourSelect.qml`): усі колірні схеми з превʼю (`caelestia scheme list`), варіант M3 для схеми Dynamic, темна/світла тема. Типова схема — `caelestia scheme set -n catppuccin -f mocha -m dark -v tonalspot`.
 - Самі сторінки лежать в `etc/caelestia-patches/overlay/` (`apply.sh` копіює їх у `/etc/xdg/quickshell/caelestia`), а в меню Nexus їх додає патч `caelestia-nexus-hyprland-pages.patch`. Обидва застосовуються автоматично після кожного оновлення `caelestia-shell`.
 
 ## Hyprland: яка програма на якому столі
