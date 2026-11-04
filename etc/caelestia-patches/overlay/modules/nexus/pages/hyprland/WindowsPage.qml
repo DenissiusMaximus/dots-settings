@@ -201,11 +201,18 @@ PageBase {
         }
 
         ToggleRow {
-            last: true
             text: Tr.tr("Remember floating window size")
             subtext: Tr.tr("Apps reopen floating windows at their last size, also after a reboot")
             checked: HyprSettings.get("windows.rememberSize", true)
             onToggled: HyprSettings.set("windows.rememberSize", checked)
+        }
+
+        ToggleRow {
+            last: true
+            text: Tr.tr("Remember floating window position")
+            subtext: Tr.tr("Apps reopen floating windows where they were, kept on screen")
+            checked: HyprSettings.get("windows.rememberPosition", true)
+            onToggled: HyprSettings.set("windows.rememberPosition", checked)
         }
 
         SectionHeader {
