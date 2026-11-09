@@ -40,6 +40,7 @@ case "$1" in
         tmp=$(mktemp)
         jq --indent 2 --arg s "$2" '.shell = $s' "$CONF" > "$tmp" && cat "$tmp" > "$CONF"
         rm -f "$tmp"
+        hyprctl reload >/dev/null 2>&1 # binds depend on the shell
         if [ "$2" = noctalia ]; then
             stop_caelestia; sleep 1; start_noctalia
         else
