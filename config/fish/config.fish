@@ -7,3 +7,8 @@ source /usr/share/cachyos-fish-config/cachyos-config.fish
 #end
 
 fish_add_path /home/denis/.spicetify
+
+# Caelestia terminal colours (written by `caelestia scheme set`) for new terminals
+if status is-interactive; and test -f ~/.local/state/caelestia/sequences.txt
+    cat ~/.local/state/caelestia/sequences.txt
+end
