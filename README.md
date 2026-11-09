@@ -82,15 +82,18 @@ git add -A && git commit -m update && git push
 | Windows & look | відступи, рамки, заокруглення, прозорість, розмиття, анімації, запам'ятовування плаваючого режиму (будь-яке перемикання, не лише `Super + H`) , розміру й позиції плаваючих вікон — також після перезавантаження; список запам'ятованих програм |
 | Workspaces | кількість столів на монітор, яка програма на якому столі, огляд (`Super + Tab`) |
 | Input | розкладки, клавіші перемикання, чутливість миші, тачпад і жести, розкладка окремо для кожної програми |
-| Displays & system | роздільність, частота і масштаб кожного монітора, VRR, поглинання вікон терміналом, вставка середньою кнопкою |
+| Displays & system | **оболонка робочого столу (Caelestia / Noctalia)**, роздільність, частота і масштаб кожного монітора, VRR, поглинання вікон терміналом, вставка середньою кнопкою |
 | Shortcuts & apps | програми для `Super + Enter/E/W/T/C`; усі комбінації клавіш (вбудовані можна перепризначити, вимкнути чи скинути, свої — додати й видалити); автозапуск так само |
 
 Як це працює:
 
 - Значення зберігаються в `config/hypr/settings.json` (у системі `~/.config/hypr/settings.json`). Lua-конфіги читають їх через `S("ключ", типове_значення)`, а сам файл завантажує `config/hypr/config/settings.lua`. Після кожної зміни Nexus виконує `hyprctl reload`. Файл можна редагувати й вручну.
 - Вбудовані комбінації та автозапуск лишаються в `binds.lua` / `autostart.lua` (назви — таблиці `DESC` і `AUTOSTART`), а зміни з Nexus зберігаються окремо: `bindOverrides` і `autostartOverrides` у `settings.json`.
+- **Оболонка Caelestia / Noctalia**: перемикач у Displays & system (параметр `shell` у `settings.json`, скрипт `config/hypr/scripts/shell-ctl.sh`). Перемикання зупиняє одну оболонку, запускає іншу і (для Caelestia) повертає поточну колірну схему, бо Noctalia переписує теми терміналів, GTK і btop. Комбінації `Super + Space/X/.../L/V/A`, медіа та яскравість у `binds.lua` вибирають команду під активну оболонку (`SH(...)`). Коли активна Noctalia: `Super + Z` — її власні параметри, а `Super + Shift + Z` — сторінки Hyprland (клавіші, розкладки, вікна, дисплеї) у полегшеній конфігурації `config/quickshell/nexus-lite` (symlink-и на встановлений caelestia-shell + урізані реєстри сторінок; після оновлення caelestia-shell: `~/.config/quickshell/nexus-lite/build.sh`).
 - Огляд пише у свій `config/quickshell/overview/config.json` і після змін перезапускається.
+- Сторінка **Wallpaper & style → Colours** (замість заглушки upstream, файл `overlay/modules/nexus/pages/wallandstyle/ColourSelect.qml`): усі колірні схеми з превʼю (`caelestia scheme list`), варіант M3 для схеми Dynamic, темна/світла тема. Типова схема — `caelestia scheme set -n catppuccin -f mocha -m dark -v tonalspot`.
 - Самі сторінки лежать в `etc/caelestia-patches/overlay/` (`apply.sh` копіює їх у `/etc/xdg/quickshell/caelestia`), а в меню Nexus їх додає патч `caelestia-nexus-hyprland-pages.patch`. Обидва застосовуються автоматично після кожного оновлення `caelestia-shell`.
+- **Panels → Taskbar → Position**: бар зліва (вертикальний, як в upstream) або зверху (горизонтальний). Перемикається на льоту з анімацією. Зверху порядок елементів той самий, що в `bar.entries`, тільки зліва направо: те, що стоїть до першого `spacer`, іде ліворуч, те, що між спейсерами, — по центру, решта — праворуч. Попапи бару виїжджають униз, дашборд з'являється під центром бару (якщо під курсором немає попапа). Значення зберігається в `config/caelestia/bar-layout.json` (`{"position": "left" | "top"}`). Горизонтальні компоненти лежать в `overlay/modules/bar/horizontal/` і `overlay/services/BarLayout.qml`, а решту shell (шухляди, попапи, рамку, зони виключення) підлаштовує патч `caelestia-top-bar.patch`.
 
 ## Hyprland: яка програма на якому столі
 
@@ -172,7 +175,8 @@ git add -A && git commit -m update && git push
 | `Ctrl + Shift + Esc` | btop (диспетчер задач) |
 | `Super + Space` | лаунчер програм |
 | `Super + X` | дашборд |
-| `Super + Z` | Caelestia nexus |
+| `Super + Z` | налаштування оболонки (Caelestia Nexus або параметри Noctalia) |
+| `Super + Shift + Z` | налаштування Hyprland (клавіші, розкладки, вікна, дисплеї) |
 | `Super + A` | бічна панель (сповіщення) |
 | `Super + V` | історія буфера обміну |
 | `Super + .` | емодзі |

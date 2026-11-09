@@ -50,6 +50,7 @@ sync_dir home   "$HOME"         "$BACKUP/home"
 
 echo "==> Патчі caelestia (далі pacman-хук застосовує їх сам після оновлень)"
 [ -x /etc/caelestia-patches/apply.sh ] && sudo /etc/caelestia-patches/apply.sh || true
+[ -x "$HOME/.config/quickshell/nexus-lite/build.sh" ] && "$HOME/.config/quickshell/nexus-lite/build.sh" || true
 
 echo "==> Сервіси"
 while read -r s; do [ -n "$s" ] && sudo systemctl enable "$s" 2>/dev/null || true; done < packages/services.txt

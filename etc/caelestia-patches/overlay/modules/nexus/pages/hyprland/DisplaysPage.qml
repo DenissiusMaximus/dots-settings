@@ -36,6 +36,19 @@ PageBase {
         }
     ]
 
+    readonly property list<MenuItem> shellItems: [
+        MenuItem {
+            text: "Caelestia"
+            icon: "auto_awesome"
+            value: "caelestia"
+        },
+        MenuItem {
+            text: "Noctalia"
+            icon: "bedtime"
+            value: "noctalia"
+        }
+    ]
+
     title: Tr.tr("Displays & system")
 
     ColumnLayout {
@@ -57,6 +70,17 @@ PageBase {
 
         SelectRow {
             first: true
+            label: Tr.tr("Desktop shell")
+            subtext: Tr.tr("Bar, launcher, notifications and its own settings. The shell is restarted when you switch")
+            menuItems: root.shellItems
+            active: root.shellItems.find(i => i.value === HyprSettings.get("shell", "caelestia")) ?? root.shellItems[0]
+            onSelected: item => {
+                if (item.value !== HyprSettings.get("shell", "caelestia"))
+                    Quickshell.execDetached([`${HyprSettings.configDir}/hypr/scripts/shell-ctl.sh`, "switch", item.value]);
+            }
+        }
+
+        SelectRow {
             label: Tr.tr("Variable refresh rate")
             subtext: Tr.tr("Adaptive sync (FreeSync / G-Sync)")
             menuItems: root.vrrItems

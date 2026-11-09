@@ -1,5 +1,10 @@
 local mainMod = "SUPER"
 local shellCall = "caelestia shell "
+-- Desktop shell chosen in Nexus (Displays & system): "caelestia" or "noctalia".
+-- SH(caelestia command, noctalia command) picks the command of the active shell.
+local NOCTALIA = S("shell", "caelestia") == "noctalia"
+local function SH(caelestiaCmd, noctaliaCmd) return NOCTALIA and noctaliaCmd or caelestiaCmd end
+local nMsg = "noctalia msg "
 local launchPrefix = "uwsm app -- " -- if you are not using UWSM, make this empty (e.g. "")
 
 -- AZERTY fix: the number-row keys emit symbols (& é " ' ...) without Shift, so
@@ -54,7 +59,8 @@ local DESC = {
     ["XF86Calculator"]                        = "Calculator (calculator key)",
     ["SUPER + W"]                             = "Browser",
     ["CONTROL + SHIFT + Escape"]              = "Task manager (btop)",
-    ["SUPER + Z"]                             = "Settings (Nexus)",
+    ["SUPER + Z"]                             = "Shell settings (Nexus or Noctalia)",
+    ["SUPER + SHIFT + Z"]                     = "Hyprland settings (keys, keyboard layouts...)",
     ["SUPER + X"]                             = "Dashboard",
     ["SUPER + Space"]                         = "App launcher",
     ["SUPER + period"]                        = "Emoji picker",
@@ -175,7 +181,13 @@ end
 
 -- Move & Resize with mouse
 bind(mainMod .. " + mouse:272", hl.dsp.window.drag())
-bind(mainMod .. " + mouse:273", hl.dsp.window.resize())
+-- Resize with the mouse, except in the ReaFruit piano roll (it draws its own content at a fixed
+-- size and only follows its own corner grip, so a resize from outside leaves it out of sync)
+bind(mainMod .. " + mouse:273", function()
+    local win = hl.get_active_window()
+    if win and win.class == "REAPER" and tostring(win.title or ""):find("^ReaFruit") then return end
+    hl.dispatch(hl.dsp.window.resize())
+end)
 
 -- Resize active window with keyboard (works for tiled and floating windows)
 local resizeStep = 40
@@ -214,12 +226,13 @@ bind(mainMod .. " + C",          hl.dsp.exec_cmd(launchPrefix .. CALCULATOR))
 bind("XF86Calculator",           hl.dsp.exec_cmd(launchPrefix .. CALCULATOR))
 bind(mainMod .. " + W",          hl.dsp.exec_cmd(launchPrefix .. BROWSER))
 bind("CONTROL + SHIFT + Escape", hl.dsp.exec_cmd(launchPrefix .. TERMINAL .. " -e btop"))
-bind(mainMod .. " + Z",          hl.dsp.exec_cmd(shellCall .. "nexus open"))
-bind(mainMod .. " + X",          hl.dsp.exec_cmd(shellCall .. "drawers toggle dashboard"))
-bind(mainMod .. " + Space", hl.dsp.exec_cmd(shellCall .. "drawers toggle launcher"))
-bind(mainMod .. " + period",     hl.dsp.exec_cmd("caelestia emoji -p"))
-bind(mainMod .. " + L", hl.dsp.exec_cmd(shellCall .. "lock lock"))
-bind(mainMod .. " + ALT + C",    hl.dsp.exec_cmd(shellCall .. "drawers toggle session"))
+bind(mainMod .. " + Z",          hl.dsp.exec_cmd(SH(shellCall .. "nexus open", nMsg .. "settings-toggle")))
+bind(mainMod .. " + SHIFT + Z",  hl.dsp.exec_cmd("~/.config/hypr/scripts/shell-ctl.sh hypr-settings"))
+bind(mainMod .. " + X",          hl.dsp.exec_cmd(SH(shellCall .. "drawers toggle dashboard", nMsg .. "panel-toggle control-center")))
+bind(mainMod .. " + Space", hl.dsp.exec_cmd(SH(shellCall .. "drawers toggle launcher", nMsg .. "panel-toggle launcher")))
+bind(mainMod .. " + period",     hl.dsp.exec_cmd(SH("caelestia emoji -p", nMsg .. "panel-toggle launcher /emo")))
+bind(mainMod .. " + L", hl.dsp.exec_cmd(SH(shellCall .. "lock lock", nMsg .. "session lock")))
+bind(mainMod .. " + ALT + C",    hl.dsp.exec_cmd(SH(shellCall .. "drawers toggle session", nMsg .. "panel-toggle session")))
 
 ---------------------------
 ---- HARDWARE CONTROLS ----
@@ -232,14 +245,14 @@ bind("XF86AudioMute",        hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK
 bind("XF86AudioMicMute",     hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"),    { locked = true })
 
 -- Media
-bind("XF86AudioPlay",  hl.dsp.exec_cmd(shellCall .. "mpris playPause"),   { locked = true })
-bind("XF86AudioPause", hl.dsp.exec_cmd(shellCall .. "mpris playPause"),   { locked = true })
-bind("XF86AudioNext",  hl.dsp.exec_cmd(shellCall .. "mpris next"),     { locked = true })
-bind("XF86AudioPrev",  hl.dsp.exec_cmd(shellCall .. "mpris previous"), { locked = true })
+bind("XF86AudioPlay",  hl.dsp.exec_cmd(SH(shellCall .. "mpris playPause", nMsg .. "media toggle")),   { locked = true })
+bind("XF86AudioPause", hl.dsp.exec_cmd(SH(shellCall .. "mpris playPause", nMsg .. "media toggle")),   { locked = true })
+bind("XF86AudioNext",  hl.dsp.exec_cmd(SH(shellCall .. "mpris next", nMsg .. "media next")),     { locked = true })
+bind("XF86AudioPrev",  hl.dsp.exec_cmd(SH(shellCall .. "mpris previous", nMsg .. "media previous")), { locked = true })
 
 -- Brightness
-bind("XF86MonBrightnessUp",   hl.dsp.exec_cmd(shellCall .. "brightness set +5%"),   { locked = true, repeating = true })
-bind("XF86MonBrightnessDown", hl.dsp.exec_cmd(shellCall .. "brightness set 5%-"), { locked = true, repeating = true })
+bind("XF86MonBrightnessUp",   hl.dsp.exec_cmd(SH(shellCall .. "brightness set +5%", nMsg .. "brightness-up")),   { locked = true, repeating = true })
+bind("XF86MonBrightnessDown", hl.dsp.exec_cmd(SH(shellCall .. "brightness set 5%-", nMsg .. "brightness-down")), { locked = true, repeating = true })
 
 -------------------
 ---- UTILITIES ----
@@ -257,13 +270,13 @@ end)
 bind(mainMod .. " + Print", hl.dsp.exec_cmd("~/.config/hypr/scripts/screenshot.sh --region"))
 
 -- Theming and Wallpaper
-bind(mainMod .. " + SHIFT + W", hl.dsp.exec_cmd("caelestia wallpaper -r"))
+bind(mainMod .. " + SHIFT + W", hl.dsp.exec_cmd(SH("caelestia wallpaper -r", nMsg .. "wallpaper-random")))
 
 -- Clipboard
-bind(mainMod .. " + V", hl.dsp.exec_cmd("caelestia clipboard"))
+bind(mainMod .. " + V", hl.dsp.exec_cmd(SH("caelestia clipboard", nMsg .. "panel-toggle clipboard")))
 
 -- Notifications
-bind(mainMod .. " + A", hl.dsp.exec_cmd(shellCall .. "drawers toggle sidebar"))
+bind(mainMod .. " + A", hl.dsp.exec_cmd(SH(shellCall .. "drawers toggle sidebar", nMsg .. "panel-toggle control-center")))
 bind(mainMod .. " + B", hl.dsp.exec_cmd("~/.config/hypr/scripts/toggle-bar.sh"))
 
 -------------------------------

@@ -5,7 +5,7 @@ cd "$(dirname "$0")"
 
 CONFIGS=(hypr caelestia fish kitty alacritty fuzzel gtk-3.0 gtk-4.0 qt5ct qt6ct qtengine
          btop cava micro uwsm xsettingsd noctalia Thunar shelly swash zed spicetify
-         quickshell/overview systemd/user kdeglobals mimeapps.list user-dirs.dirs user-dirs.locale)
+         quickshell/overview quickshell/nexus-lite systemd/user kdeglobals mimeapps.list user-dirs.dirs user-dirs.locale)
 HOME_FILES=(.zshrc .bashrc .bash_profile .gitconfig .icons .local/bin/app-keyboard-layout.sh)
 ETC_FILES=(greetd caelestia-patches pacman.d/hooks/caelestia-patches.hook)
 

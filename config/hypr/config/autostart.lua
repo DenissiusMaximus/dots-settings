@@ -5,7 +5,7 @@
 
 local AUTOSTART = {
     { name = "Pass session environment to apps", cmd = "dbus-update-activation-environment --systemd --all" },
-    { name = "Caelestia shell (bar, launcher, notifications)", cmd = "caelestia shell -d" },
+    { name = "Desktop shell (Caelestia or Noctalia, chosen in Nexus)", cmd = "~/.config/hypr/scripts/shell-ctl.sh start" },
     { name = "Workspace overview (SUPER + Tab)", cmd = "qs -c overview -d" },
     { name = "Clipboard history", cmd = "wl-paste --watch cliphist store" },
     { name = "Allow root apps on the screen", cmd = "xhost +SI:localuser:root" },
