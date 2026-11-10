@@ -96,12 +96,12 @@ hl.window_rule({
 -- corner of the roll: ReaFruit (ReaImGui) then resizes the native window itself. Do NOT pin the
 -- size here: a native window smaller than the roll's ImGui window cuts its content off, and
 -- resizing the native window from outside (Hyprland) is not picked up by the roll.
--- The caps only keep the window on the screen.
+-- Min size = what ReaFruit itself needs (1329x760); the max only keeps the window on the screen.
 hl.window_rule({
     match    = { class = "^(REAPER)$", title = "^(ReaFruit.*)$" },
     float    = true,
     center   = true,
-    min_size = { "800", "500" },
+    min_size = { "1329", "760" }, -- ReaFruit's own minimum (toolbar); below it the roll and the window drift apart and the mouse is read offset
     max_size = { "monitor_w - 20", "monitor_h - 20" },
 })
 
