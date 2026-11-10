@@ -87,9 +87,22 @@ hl.window_rule({
     },
 })
 hl.window_rule({
-    match = { class = "^(REAPER)$", title = "negative:^(REAPER v.*|\\[.*\\] - REAPER.*|.* - REAPER v.*|menu|ReaFruit.*)$" },
+    match = { class = "^(REAPER)$", title = "negative:^(REAPER v.*|\\[.*\\] - REAPER.*|.* - REAPER v.*|menu|ReaFruit.*|)$" },
     float  = true,
     center = true,
+})
+-- REAPER tooltips are untitled windows: REAPER places them itself, so no centring (it showed them in
+-- the middle of the screen first), no animation, no focus steal, no decoration
+hl.window_rule({
+    match = { class = "^(REAPER)$", title = "^$" },
+    float = true,
+    no_anim = true,
+    no_focus = true,
+    no_initial_focus = true,
+    no_shadow = true,
+    no_blur = true,
+    border_size = 0,
+    rounding = 0,
 })
 
 -- ReaFruit piano roll: floating, resizable. Resize it with the grip in the bottom-right
