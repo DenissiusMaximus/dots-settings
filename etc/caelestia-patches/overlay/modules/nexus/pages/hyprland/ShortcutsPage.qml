@@ -43,6 +43,13 @@ PageBase {
             fallback: "kitty"
         }
 
+        ToggleRow {
+            text: Tr.tr("Terminal opens in the VS Code folder")
+            subtext: Tr.tr("SUPER + Enter in VS Code starts the terminal in that window's folder")
+            checked: HyprSettings.get("apps.terminalInVscodeDir", true)
+            onToggled: HyprSettings.set("apps.terminalInVscodeDir", checked)
+        }
+
         AppField {
             label: Tr.tr("File manager (SUPER + E)")
             key: "fileManager"

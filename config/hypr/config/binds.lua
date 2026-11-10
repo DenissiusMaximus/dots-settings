@@ -52,7 +52,7 @@ local DESC = {
     ["SUPER + Plus"]                          = "Zoom in",
     ["SUPER + code:82"]                       = "Zoom out (keypad)",
     ["SUPER + code:86"]                       = "Zoom in (keypad)",
-    ["SUPER + Return"]                        = "Terminal",
+    ["SUPER + Return"]                        = "Terminal (in VS Code: opens the project folder)",
     ["SUPER + E"]                             = "File manager",
     ["SUPER + T"]                             = "Text editor",
     ["SUPER + C"]                             = "Calculator",
@@ -219,7 +219,9 @@ bind(mainMod .. " + code:86", function() zoomfunction(0.3) end, { repeating = tr
 ---- LAUNCHER ----
 ------------------
 
-bind(mainMod .. " + Return",     hl.dsp.exec_cmd(launchPrefix .. TERMINAL))
+-- In VS Code the terminal opens in the folder of that VS Code window (apps.terminalInVscodeDir)
+local termHere = "~/.config/hypr/scripts/terminal-here.sh"
+bind(mainMod .. " + Return",     hl.dsp.exec_cmd((S("apps.terminalInVscodeDir", true) and "" or "VSCODE_CWD=0 ") .. termHere .. " " .. TERMINAL))
 bind(mainMod .. " + E",          hl.dsp.exec_cmd(launchPrefix .. FILE_MANAGER))
 bind(mainMod .. " + T",          hl.dsp.exec_cmd(launchPrefix .. EDITOR))
 bind(mainMod .. " + C",          hl.dsp.exec_cmd(launchPrefix .. CALCULATOR))
