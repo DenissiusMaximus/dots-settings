@@ -68,10 +68,47 @@ hl.window_rule({
     },
 })
 
+-- REAPER: the main window is tiled, everything else (menus, dialogs, ReaFruit) floats
+hl.window_rule({
+    match = { class = "^(REAPER)$", title = "^(REAPER v.*|\\[.*\\] - REAPER.*|.* - REAPER v.*)$" },
+    tile  = true,
+})
+hl.window_rule({
+    match = { class = "^(REAPER)$", title = "negative:^(REAPER v.*|\\[.*\\] - REAPER.*|.* - REAPER v.*)$" },
+    float = true,
+})
+-- REAPER: popup menus open at the cursor, dialogs/settings/error windows stay centred
+hl.window_rule({
+    match = { class = "^(REAPER)$", title = "^(menu)$" },
+    float = true,
+    move  = {
+        "max(5, min(cursor_x, monitor_w - window_w - 5))",
+        "max(5, min(cursor_y, monitor_h - window_h - 5))",
+    },
+})
+hl.window_rule({
+    match = { class = "^(REAPER)$", title = "negative:^(REAPER v.*|\\[.*\\] - REAPER.*|.* - REAPER v.*|menu|ReaFruit.*)$" },
+    float  = true,
+    center = true,
+})
+
+-- ReaFruit piano roll: floating, centred, resizable. Resize it with the grip in the bottom-right
+-- corner of the roll: ReaFruit (ReaImGui) then resizes the native window itself. Do NOT pin the
+-- size here: a native window smaller than the roll's ImGui window cuts its content off, and
+-- resizing the native window from outside (Hyprland) is not picked up by the roll.
+-- The caps only keep the window on the screen.
+hl.window_rule({
+    match    = { class = "^(REAPER)$", title = "^(ReaFruit.*)$" },
+    float    = true,
+    center   = true,
+    min_size = { "800", "500" },
+    max_size = { "monitor_w - 20", "monitor_h - 20" },
+})
+
 -- Opacity Overrides
 local terminals = "^(kitty|ghostty|[Kk]onsole|Alacritty|gnome-terminal|xfce[0-9]?-terminal)$"
 
-hl.window_rule({ match = { class = "^(firefox|zen)$" }, opacity = "1.0 override" })
+hl.window_rule({ match = { class = "^(firefox|zen|REAPER)$" }, opacity = "1.0 override" })
 hl.window_rule({ match = { class = terminals }, opacity = "1.0 override" }) -- Override opacity in favor of terminal settings for opacity. If your terminal doesn't support transparency, you can remove this rule.
 hl.window_rule({ match = { class = "^(mpv|org.kde.haruna|.*plex.*|org\\.kde\\.gwenview|.*vlc.*)$" }, opacity = "1.0 override" })
 
