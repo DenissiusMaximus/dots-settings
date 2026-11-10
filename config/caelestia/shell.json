@@ -93,5 +93,10 @@
         "toasts": {
             "configLoaded": false
         }
+    },
+    "general": {
+        "idle": {
+            "inhibitWhenAudio": true
+        }
     }
 }
