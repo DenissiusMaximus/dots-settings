@@ -19,6 +19,11 @@
       "class": "org\\.telegram\\.desktop",
       "workspace": "3",
       "silent": false
+    },
+    {
+      "class": "discord",
+      "workspace": "3",
+      "silent": false
     }
   ],
   "general": {
@@ -55,8 +60,13 @@
     "middleClickPaste": false
   },
   "monitors": [],
+  "mirror": {
+    "from": "eDP-1",
+    "to": "HDMI-A-1"
+  },
   "autostart": [],
   "binds": [],
   "bindOverrides": {},
-  "autostartOverrides": {}
+  "autostartOverrides": {},
+  "shell": "caelestia"
 }

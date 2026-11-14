@@ -49,6 +49,26 @@ PageBase {
         }
     ]
 
+    // Screen duplication: "from>to" pairs of every known output ("" = off)
+    readonly property string mirrorValue: {
+        const from = HyprSettings.get("mirror.from", "");
+        const to = HyprSettings.get("mirror.to", "");
+        return from && to && from !== to ? `${from}>${to}` : "";
+    }
+    readonly property list<string> mirrorPairs: {
+        const names = Hyprland.monitors.values.map(m => m.name);
+        // A mirrored output is not in the list above, so add the saved pair back
+        for (const n of mirrorValue ? mirrorValue.split(">") : [])
+            if (!names.includes(n))
+                names.push(n);
+        const pairs = [""];
+        for (const a of names)
+            for (const b of names)
+                if (a !== b)
+                    pairs.push(`${a}>${b}`);
+        return pairs;
+    }
+
     title: Tr.tr("Displays & system")
 
     ColumnLayout {
@@ -57,10 +77,47 @@ PageBase {
         width: root.cappedWidth
         spacing: Tokens.spacing.extraSmall / 2
 
+        Variants {
+            id: mirrorItems
+
+            model: root.mirrorPairs
+
+            MenuItem {
+                required property string modelData
+
+                text: modelData === "" ? Tr.trCtx("Off", "screen duplication") : modelData.replace(">", " → ")
+                icon: modelData === "" ? "block" : "screen_share"
+                value: modelData
+            }
+        }
+
         Repeater {
             model: Hyprland.monitors.values
 
             MonitorSection {}
+        }
+
+        // Screen duplication
+        SectionHeader {
+            text: Tr.tr("Screen duplication")
+        }
+
+        SelectRow {
+            first: true
+            last: true
+            label: Tr.tr("Duplicate screen")
+            subtext: Tr.tr("The second monitor shows a full copy of the first one, and the pointer stays on one screen")
+            menuItems: mirrorItems.instances
+            active: mirrorItems.instances.find(i => i.value === root.mirrorValue) ?? null
+            fallbackIcon: "screen_share"
+            fallbackText: root.mirrorValue.replace(">", " → ")
+            onSelected: item => {
+                const [from, to] = item.value ? item.value.split(">") : ["", ""];
+                HyprSettings.set("mirror", {
+                    from,
+                    to
+                });
+            }
         }
 
         // System
