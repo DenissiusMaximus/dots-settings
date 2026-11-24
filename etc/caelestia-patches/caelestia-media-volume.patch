@@ -1,22 +1,11 @@
---- a/modules/dashboard/Media.qml	2026-11-24 17:24:00.470256010 +0200
-+++ b/modules/dashboard/Media.qml	2026-11-24 17:24:00.473569590 +0200
-@@ -137,8 +137,18 @@
-                 sourceComponent: RowLayout {
-                     spacing: Tokens.spacing.extraLarge
+# Add a per-player volume control (VolumePopout) next to the lyrics info button.
+--- a/modules/dashboard/media/LyricsAndSelector.qml	2026-11-24 17:43:25.340799371 +0200
++++ b/modules/dashboard/media/LyricsAndSelector.qml	2026-11-24 17:43:25.343101785 +0200
+@@ -34,6 +34,7 @@
+             }
  
--                    Details {
-+                    RowLayout {
-                         Layout.fillWidth: true
-+                        Layout.fillHeight: false
-+                        spacing: Tokens.spacing.large
-+
-+                        Details {
-+                            Layout.fillWidth: true
-+                        }
-+
-+                        VolumeSlider {
-+                            Layout.fillHeight: true
-+                        }
-                     }
+             LyricsInfo {}
++            VolumePopout {}
+         }
  
-                     LyricsAndSelector {
+         LyricList {

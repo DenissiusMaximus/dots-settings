@@ -13,6 +13,14 @@ Item {
     readonly property var player: Players.active
     readonly property bool supported: (player?.volumeSupported ?? false) && (player?.canControl ?? false)
     readonly property bool dragging: mouse.pressed
+    readonly property bool changing: mouse.pressed || showValue.running
+
+    // Swap the bottom icon for the percentage while changing
+    property bool showValueLabel: true
+
+    // Handle widths (idle / pressed); the touch area and bottom icon cell follow the wider one
+    property real handleWidth: 28
+    property real handlePressedWidth: 34
 
     // Volume shown by the slider. Kept apart from player.volume so the handle
     // doesn't jump back while the player is still catching up with a drag.
@@ -34,6 +42,15 @@ Item {
         showValue.restart();
         if (supported)
             player.volume = level;
+    }
+
+    function toggleMute(): void {
+        if (level > 0) {
+            lastLevel = level;
+            setLevel(0);
+        } else {
+            setLevel(lastLevel || 0.5);
+        }
     }
 
     visible: supported
@@ -113,7 +130,7 @@ Item {
             anchors.bottomMargin: track.gap
             anchors.horizontalCenter: parent.horizontalCenter
 
-            implicitWidth: mouse.pressed ? 34 : 28
+            implicitWidth: mouse.pressed ? root.handlePressedWidth : root.handleWidth
             implicitHeight: 4
 
             radius: Tokens.rounding.full
@@ -154,7 +171,7 @@ Item {
         anchors.top: track.top
         anchors.bottom: track.bottom
         anchors.horizontalCenter: parent.horizontalCenter
-        implicitWidth: 34
+        implicitWidth: Math.max(root.handlePressedWidth, 20)
 
         preventStealing: true
         cursorShape: Qt.PointingHandCursor
@@ -167,11 +184,11 @@ Item {
     Item {
         id: label
 
-        readonly property bool showingValue: mouse.pressed || showValue.running
+        readonly property bool showingValue: root.showValueLabel && (mouse.pressed || showValue.running)
 
         anchors.bottom: parent.bottom
         anchors.horizontalCenter: parent.horizontalCenter
-        implicitWidth: 34
+        implicitWidth: Math.max(root.handlePressedWidth, 20)
         implicitHeight: icon.implicitHeight
 
         MaterialIcon {
@@ -208,14 +225,7 @@ Item {
         MouseArea {
             anchors.fill: parent
             cursorShape: Qt.PointingHandCursor
-            onClicked: {
-                if (root.level > 0) {
-                    root.lastLevel = root.level;
-                    root.setLevel(0);
-                } else {
-                    root.setLevel(root.lastLevel || 0.5);
-                }
-            }
+            onClicked: root.toggleMute()
         }
     }
 
