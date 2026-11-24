@@ -1,15 +1,22 @@
---- a/modules/dashboard/media/LyricsAndSelector.qml	2026-11-24 17:23:06.473195906 +0200
-+++ b/modules/dashboard/media/LyricsAndSelector.qml	2026-11-24 17:23:06.476847730 +0200
-@@ -41,6 +41,12 @@
-             Layout.fillHeight: true
-         }
+--- a/modules/dashboard/Media.qml	2026-11-24 17:24:00.470256010 +0200
++++ b/modules/dashboard/Media.qml	2026-11-24 17:24:00.473569590 +0200
+@@ -137,8 +137,18 @@
+                 sourceComponent: RowLayout {
+                     spacing: Tokens.spacing.extraLarge
  
-+        VolumeBar {
-+            Layout.fillWidth: true
-+            Layout.topMargin: Tokens.spacing.small
-+            Layout.bottomMargin: Tokens.spacing.small
-+        }
+-                    Details {
++                    RowLayout {
+                         Layout.fillWidth: true
++                        Layout.fillHeight: false
++                        spacing: Tokens.spacing.large
 +
-         SplitButton {
-             Layout.alignment: Qt.AlignHCenter
++                        Details {
++                            Layout.fillWidth: true
++                        }
++
++                        VolumeSlider {
++                            Layout.fillHeight: true
++                        }
+                     }
  
+                     LyricsAndSelector {
