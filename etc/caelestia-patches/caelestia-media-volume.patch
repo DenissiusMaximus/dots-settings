@@ -1,0 +1,22 @@
+--- a/modules/dashboard/Media.qml	2026-11-24 17:21:24.079214844 +0200
++++ b/modules/dashboard/Media.qml	2026-11-24 17:22:17.429679628 +0200
+@@ -137,8 +137,18 @@
+                 sourceComponent: RowLayout {
+                     spacing: Tokens.spacing.extraLarge
+ 
+-                    Details {
++                    ColumnLayout {
+                         Layout.fillWidth: true
++                        Layout.fillHeight: false
++                        spacing: Tokens.spacing.large
++
++                        Details {
++                            Layout.fillWidth: true
++                        }
++
++                        VolumeBar {
++                            Layout.fillWidth: true
++                        }
+                     }
+ 
+                     LyricsAndSelector {
